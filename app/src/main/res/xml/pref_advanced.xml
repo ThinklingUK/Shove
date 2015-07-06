@@ -1,0 +1,97 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+            android:title="Board Settings"
+            android:key="pref_board_settings">
+
+        <uk.thinkling.shove.ListPreference
+                android:key="pref_beds"
+                android:title="Number of beds"
+                android:defaultValue="9"
+                android:summary="%s"
+                android:entries="@array/pref_beds_list_titles"
+                android:entryValues="@array/pref_beds_list_values"
+                android:negativeButtonText="@null"
+                android:positiveButtonText="@null" />
+
+        <uk.thinkling.shove.ListPreference
+                android:key="pref_bedscore"
+                android:title="Score to fill bed"
+                android:defaultValue="3"
+                android:summary="%s"
+                android:entries="@array/pref_beds_list_titles"
+                android:entryValues="@array/pref_beds_list_values"
+                android:negativeButtonText="@null"
+                android:positiveButtonText="@null" />
+
+        <uk.thinkling.shove.ListPreference
+                android:key="pref_maxcoins"
+                android:title="Number of Coins"
+                android:defaultValue="5"
+                android:summary="%s"
+                android:entries="@array/pref_beds_list_titles"
+                android:entryValues="@array/pref_beds_list_values"
+                android:negativeButtonText="@null"
+                android:positiveButtonText="@null" />
+
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+            android:title="Variants (coming soon)"
+            android:key="pref_variant_settings"
+            android:enabled="false">
+
+
+        <CheckBoxPreference
+                android:key="pref_progressive"
+                android:title="Oxford (Progressive)"
+                android:summary="Re-play any scoring coins"
+                android:enabled="false"
+                android:defaultValue="false" />
+
+        <CheckBoxPreference
+                android:key="pref_pointscore"
+                android:title="Shanghai (Scoring)"
+                android:summary="Scoring version - no limit to beds"
+                android:enabled="false"
+                android:defaultValue="false" />
+
+        <CheckBoxPreference
+                android:key="pref_combat"
+                android:title="New York (Combat)"
+                android:summary="Players alternate shots"
+                android:enabled="false"
+                android:defaultValue="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+            android:title="Custom Options (coming soon)"
+            android:key="pref_custom_settings"
+            android:enabled="false">
+
+           <!-- A 'parent' preference, which enables/disables child preferences (below)
+                when checked/unchecked. -->
+           <CheckBoxPreference
+               android:key="notifications_new_message"
+               android:title="Enable full version"
+               android:defaultValue="true" />
+
+           <!-- Allows the user to choose a ringtone in the 'notification' category. -->
+           <!-- NOTE: This preference will be enabled only when the checkbox above is checked. -->
+           <!-- NOTE: RingtonePreference's summary should be set to its value by the activity code. -->
+           <RingtonePreference
+               android:dependency="notifications_new_message"
+               android:key="notifications_new_message_ringtone"
+               android:title="Select sounds"
+               android:ringtoneType="notification"
+               android:defaultValue="content://settings/system/notification_sound" />
+
+           <!-- NOTE: This preference will be enabled only when the checkbox above is checked. -->
+           <CheckBoxPreference
+               android:dependency="notifications_new_message"
+               android:key="notifications_new_message_vibrate"
+               android:title="Remove adverts"
+               android:defaultValue="true" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

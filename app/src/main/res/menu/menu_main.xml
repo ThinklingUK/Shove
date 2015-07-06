@@ -1,0 +1,16 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools" tools:context=".MainActivity">
+    <item android:id="@+id/action_settings" android:title="@string/action_settings"
+          android:orderInCategory="100" app:showAsAction="never"/>
+    <item android:id="@+id/action_clearcache" android:title="Clear Cache"
+          android:orderInCategory="100" app:showAsAction="never"/>
+    <item android:id="@+id/action_start1" android:title="Don't Touch"
+          android:orderInCategory="100" app:showAsAction="never"/>
+    <item android:id="@+id/action_start2" android:title="Do touch"
+          android:orderInCategory="100" app:showAsAction="never"/>
+    <item android:id="@+id/action_start3" android:title="Fling"
+          android:orderInCategory="100" app:showAsAction="never"/>
+    <item android:id="@+id/action_start4" android:title="White Eats"
+          android:orderInCategory="100" app:showAsAction="never"/>
+</menu>

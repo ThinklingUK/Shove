@@ -1,0 +1,73 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory
+            android:title="Player Settings"
+            android:key="pref_player_settings">
+
+        <uk.thinkling.shove.EditTextPreference
+                android:key="pref_player1"
+                android:title="1st Player Name: %s"
+                android:summary=""
+                android:dialogTitle="1st Player Name"
+                android:defaultValue="Player 1"
+                android:selectAllOnFocus="true"
+                android:inputType="textCapWords"
+                android:capitalize="words"
+                android:singleLine="true"
+                android:maxLines="1" />
+        <uk.thinkling.shove.EditTextPreference
+                android:key="pref_player2"
+                android:title="2nd Player Name: %s"
+                android:dialogTitle="2nd Player Name"
+                android:defaultValue="Player 2"
+                android:selectAllOnFocus="true"
+                android:inputType="textCapWords"
+                android:capitalize="words"
+                android:singleLine="true"
+                android:maxLines="1" />
+    </PreferenceCategory>
+    <PreferenceCategory
+            android:title="Game Settings"
+            android:key="pref_game_settings">
+
+        <SwitchPreference
+                android:key="pref_rebounds"
+                android:summaryOn="Can bounce off walls"
+                android:summaryOff="No bouncing off walls"
+                android:switchTextOff="OFF"
+                android:switchTextOn="ON"
+                android:title="Rebounds"
+                android:defaultValue="true"/>
+
+        <SwitchPreference
+                android:key="pref_bounds"
+                android:title="Boundaries"
+                android:summary="Allow coins to cross boundaries"
+                android:summaryOff="Boundary rules disabled"
+                android:summaryOn="Void coin if boundary crossed"
+                android:switchTextOff="OFF"
+                android:switchTextOn="ON"
+                android:defaultValue="true" />
+
+            <SwitchPreference
+                    android:key="pref_highlight"
+                    android:title="Highlights"
+                    android:summaryOff="No highlight"
+                    android:summaryOn="Highlight scoring and void coins"
+                    android:switchTextOff="OFF"
+                    android:switchTextOn="ON"
+                    android:defaultValue="true" />
+
+            <SwitchPreference
+                    android:key="pref_sounds"
+                    android:title="Sounds"
+                    android:summaryOff="Noises off"
+                    android:summaryOn="Noises on"
+                    android:switchTextOff="OFF"
+                    android:switchTextOn="ON"
+                    android:defaultValue="true" />
+
+
+
+    </PreferenceCategory>
+</PreferenceScreen>
