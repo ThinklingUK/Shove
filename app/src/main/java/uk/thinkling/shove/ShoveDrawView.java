@@ -20,7 +20,7 @@ import java.util.*;
  * SIMPLES
  * Created by Ellison on 11/04/2015.
  */
-public class DrawView3 extends View {
+public class ShoveDrawView extends View {
 
 
     /*VARIABLES*/
@@ -57,7 +57,7 @@ public class DrawView3 extends View {
 
 
     // this is the constructor - it is called when an instance of this class is created
-    public DrawView3(Context context, AttributeSet attrs) {
+    public ShoveDrawView(Context context, AttributeSet attrs) {
         super(context, attrs);
         //if (!isInEditMode()) ;
         parent = (MainActivity) this.getContext(); //TODO - remove all references to parent to improve editor preivew
@@ -185,7 +185,11 @@ public class DrawView3 extends View {
 
 
         /*Score's Text*/
-        parent.HighScoreText.setText(pName[playerNum] + " turn " + (coinCount+1));
+        if (coinCount>0)
+            parent.HighScoreText.setText(pName[playerNum] + " - " + (coinCount+1)+" coins");
+        else
+            parent.HighScoreText.setText(pName[playerNum] + " - Last coin"); //TODO const etc
+
        //Portsmouth scores
        // parent.TimeLeftText.setText("P1: "+ score[0][0]);
        // parent.ScoreText.setText("P2: "+ score[1][0]);

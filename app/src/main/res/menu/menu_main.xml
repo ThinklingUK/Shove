@@ -5,12 +5,7 @@
           android:orderInCategory="100" app:showAsAction="never"/>
     <item android:id="@+id/action_clearcache" android:title="Clear Cache"
           android:orderInCategory="100" app:showAsAction="never"/>
-    <item android:id="@+id/action_start1" android:title="Don't Touch"
+    <item android:id="@+id/action_start" android:title="New Game"
           android:orderInCategory="100" app:showAsAction="never"/>
-    <item android:id="@+id/action_start2" android:title="Do touch"
-          android:orderInCategory="100" app:showAsAction="never"/>
-    <item android:id="@+id/action_start3" android:title="Fling"
-          android:orderInCategory="100" app:showAsAction="never"/>
-    <item android:id="@+id/action_start4" android:title="White Eats"
-          android:orderInCategory="100" app:showAsAction="never"/>
+
 </menu>

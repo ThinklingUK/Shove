@@ -78,10 +78,10 @@ public class MainActivity extends ActionBarActivity {
         editor.putString("test", "preferences OK");
         editor.commit();*/
 
-        if (myDrawView instanceof DrawView3) {
+        if (myDrawView instanceof ShoveDrawView) {
             // serialize
             try {
-                ((DrawView3) myDrawView).saveData();
+                ((ShoveDrawView) myDrawView).saveData();
                 Toast.makeText(getBaseContext(), "onPause - OK", Toast.LENGTH_SHORT).show();
             } catch (IOException ex) {
                 Toast.makeText(getBaseContext(), "onPause - Fail", Toast.LENGTH_SHORT).show();
@@ -99,10 +99,10 @@ public class MainActivity extends ActionBarActivity {
     protected void onResume() {
         super.onResume();
 
-        if (myDrawView instanceof DrawView3) {
+        if (myDrawView instanceof ShoveDrawView) {
             // reload prefs
             try {
-                ((DrawView3) myDrawView).loadPrefs();
+                ((ShoveDrawView) myDrawView).loadPrefs();
                 Toast.makeText(getBaseContext(), "onResume - OK", Toast.LENGTH_SHORT).show();
             } catch (Exception ex) {
                 Toast.makeText(getBaseContext(), "onResume - Fail", Toast.LENGTH_SHORT).show();
@@ -191,24 +191,9 @@ public class MainActivity extends ActionBarActivity {
                 if (file.exists()) file.delete();
                 return true;
 
-            case R.id.action_start1:
+            case R.id.action_start:
                 parent.removeView(myDrawView);
-                myDrawView = new DrawView(this , null);
-                break;
-
-            case R.id.action_start2:
-                parent.removeView(myDrawView);
-                myDrawView = new DrawView2(this , null);
-                break;
-
-            case R.id.action_start3:
-                parent.removeView(myDrawView);
-                myDrawView = new DrawView3(this , null);
-                break;
-
-            case R.id.action_start4:
-                parent.removeView(myDrawView);
-                myDrawView = new DrawView4(this , null);
+                myDrawView = new ShoveDrawView(this , null);
                 break;
 
             default:
