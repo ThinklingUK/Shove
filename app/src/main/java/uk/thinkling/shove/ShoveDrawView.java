@@ -35,9 +35,9 @@ public class ShoveDrawView extends View {
     final float coinRatio = 0.33f; // bed to radius friction (0.33 is 2 thirds,
     final float bedSpace=0.8f; // NB: includes end space and free bed before first line.
     int beds=9, maxCoins=5, bedScore=3;
-    int coinCount= -1, winner = -1;
+    int coinsLeft = 0, winner = -1;
     int playerNum = 0;
-    int[][] score = new int[2][beds+2]; // bed zero is for point score and final bed is for tracking completed
+    int[][][] score = new int[2][beds+2][2]; // [player][bed - bed zero is for point score and final bed is for tracking completed][actual|potential]
     String[] pName = new String[2];
     boolean sounds=true, bounds=true, rebounds=true, highlight=true;
 
@@ -62,7 +62,7 @@ public class ShoveDrawView extends View {
         //if (!isInEditMode()) ;
         parent = (MainActivity) this.getContext(); //TODO - remove all references to parent to improve editor preivew
         gdc = new GestureDetectorCompat(parent, new MyGestureListener()); // create the gesture detector
-        for (int f = 0; f<score.length; f++) score[0][f]=score[1][f]=0; //set scores to zero
+       // for (int f = 0; f <= score.length; f++) score[0][f][0] = score[0][f][1] = score[1][f][0] = score[1][f][1] = 0; /* set scores to zero */
     }
 
 
@@ -99,14 +99,14 @@ public class ShoveDrawView extends View {
 
         try {
             restoreData();
-         } catch (Exception ex){ //could be FileNotFoundException, IOException, ClassNotFoundException
+        } catch (Exception ex){ //could be FileNotFoundException, IOException, ClassNotFoundException
             Log.d("deserialise",ex.toString());
         }
 
         //TODO - if beds changed, then stored object radius may be inaccurate
         //TODO if #beds changed (ie. in prefs) and mismatch with saved data, reset score data
         //Also if bedScore changes then scoring might fail - best to restart in these cases - or all cases?
-        if (score.length!=beds+2) score = new int[2][beds+2];
+        if (score[0].length!=beds+2) score = new int[2][beds+2][2];
 
 
         parent.TimeLeftText.setText("");
@@ -138,11 +138,17 @@ public class ShoveDrawView extends View {
 
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-            // effectively a Drag detector - although would need to check that we have hit a ball first.
-            if (inPlay.state == 1 && e2.getY()>startZone) {
-                inPlay.xSpeed = inPlay.ySpeed = 0;
+            // effectively a Drag detector - although would need to check that we have hit a ball first in onDown
+            if (inPlay.state == 1) {
                 inPlay.x = e2.getX();
                 inPlay.y = e2.getY();
+                if (e2.getY() > startZone) {
+                    inPlay.xSpeed = inPlay.ySpeed = 0;
+                } else {
+                    // gets a speed on drag
+                    inPlay.xSpeed = (e2.getX()-e1.getX())/10;
+                    inPlay.ySpeed = (e2.getY()-e1.getY())/10;
+                }
             }
             return true;
         }
@@ -156,8 +162,8 @@ public class ShoveDrawView extends View {
             }
             return true;
         }
-
     }
+
 
 
     @Override
@@ -172,32 +178,54 @@ public class ShoveDrawView extends View {
             canvas.drawLine(0, f * bedH + 2*bedH, screenW, f * bedH + 2*bedH, linepaint);
             if (f<beds) {
                 canvas.drawText(""+(beds-f),screenW/2,f * bedH + 2.6f*bedH, linepaint);
-               // canvas.drawText(""+score[0][beds-f],bedH/2,f * bedH + 2.6f*bedH, linepaint);
+
+                // draw the scores in the beds
                 drawScore(canvas, score[0][beds-f],0,f * bedH + 2*bedH);
                 drawScore(canvas, score[1][beds-f],screenW - bedH,f * bedH + 2*bedH);
-
-              //  canvas.drawText("" + score[1][beds - f], screenW - bedH / 2, f * bedH + 2.6f * bedH, linepaint);
             }
         }
         //draw the 2 sidebars
         canvas.drawLine(bedH, 0, bedH, screenH, linepaint);
-        canvas.drawLine(screenW-bedH, 0, screenW-bedH, screenH, linepaint);
+        canvas.drawLine(screenW - bedH, 0, screenW - bedH, screenH, linepaint);
 
 
         /*Score's Text*/
-        if (coinCount>0)
-            parent.HighScoreText.setText(pName[playerNum] + " - " + (coinCount+1)+" coins");
+        if (coinsLeft >1)
+            parent.HighScoreText.setText(pName[playerNum] + " - " + (coinsLeft)+" coins");
         else
             parent.HighScoreText.setText(pName[playerNum] + " - Last coin"); //TODO const etc
 
-       //Portsmouth scores
-       // parent.TimeLeftText.setText("P1: "+ score[0][0]);
-       // parent.ScoreText.setText("P2: "+ score[1][0]);
+        //Portsmouth scores
+        // parent.TimeLeftText.setText("P1: "+ score[0][0]);
+        // parent.ScoreText.setText("P2: "+ score[1][0]);
 
-        // bed counting
-        //parent.TimeLeftText.setText("P1: "+ score[0][beds+1]);
+        // beds scored so far counting
+        // parent.TimeLeftText.setText("P1: "+ score[0][beds+1]);
         // parent.ScoreText.setText("P2: "+ score[1][beds+1]);
 
+
+        for (MoveObj obj : objs) {
+            canvas.drawCircle((float) obj.x+shadoff, (float) obj.y+shadoff, coinR, shadowpaint);
+            matrix.reset();
+            matrix.postTranslate(-coinR, -coinR);
+            matrix.postRotate(obj.angle);
+            matrix.postTranslate((float) obj.x, (float) obj.y);
+            canvas.drawBitmap(bmp, matrix, bmppaint);
+
+            if (highlight) {
+                if (obj.state < 0) obj.draw(canvas); //TODO - move bitmap and matrix into moveObj OUTLINE IF VOIDED
+                else
+                    //if the coin is within a bed, highlight it. TODO - add a temporary score to the player, or only when motion stopped
+                    if (getBed((int) obj.y) > 0)
+                        canvas.drawCircle((float) obj.x, (float) obj.y, coinR, outlinepaint);
+            }
+
+        }
+    }
+
+
+    // this is the method called when recalculating positions
+    public void update() {
 
 
         // handle all the collisions starting at earliest time - if 2nd obj is null, then a wall collision
@@ -218,30 +246,11 @@ public class ShoveDrawView extends View {
 
 
         // Once the collisions have been handled, draw each object and apply friction
-        //use iterator to allow removal from list
         boolean motion = false;
-        Iterator<MoveObj> i = objs.iterator();
-        while (i.hasNext()) {
-            MoveObj obj = i.next(); // must be called before you can call i.remove()
-            canvas.drawCircle((float) obj.x+shadoff, (float) obj.y+shadoff, coinR, shadowpaint);
-            matrix.reset();
-            matrix.postTranslate(-coinR, -coinR);
-            matrix.postRotate(obj.angle);
-            matrix.postTranslate((float) obj.x, (float) obj.y);
-            canvas.drawBitmap(bmp, matrix, bmppaint);
+        for (MoveObj obj : objs) {
 
             //if outside the sidebars and boundary rules are on, then void the coin if already in playzone
             if (bounds && obj.state==0 && (obj.x-coinR<bedH || obj.x+coinR>screenW-bedH)) obj.state=-1;
-
-
-            if (highlight) {
-                if (obj.state < 0) obj.draw(canvas); //TODO - move bitmap and matrix into moveObj OUTLINE IF VOIDED
-                else
-                    //if the coin is within a bed, highlight it. TODO - add a temporary score to the player, or only when motion stopped
-                    if (getBed((int) obj.y) > 0)
-                        canvas.drawCircle((float) obj.x, (float) obj.y, coinR, outlinepaint);
-            }
-
 
             if (obj.xSpeed != 0 || obj.ySpeed != 0) {
                 motion = true;
@@ -254,7 +263,6 @@ public class ShoveDrawView extends View {
                 } else {
                     if (sounds) obj.movingStreamID = parent.player.play(parent.slideSound, volume, volume, 1, -1, 1);
                 }
-
             }
             else{
                 //stop any playing sound
@@ -263,65 +271,94 @@ public class ShoveDrawView extends View {
                     obj.movingStreamID=0;
                 }
             }
-
-
         }
+
         // if ball in play exits the start zone, then it cannot be touched
         if (inPlay != null && inPlay.state == 1 && inPlay.y < startZone) inPlay.state = 0;
 
-        //if there is no ball, or a ball in play and all motion stops, play new ball.
+        //if there is no ball, or a ball in play and all motion stops, calc intermediate or final scores and play new ball if final
         if (inPlay == null || !motion && inPlay.state != 1) {
-                coinCount++;
-                // all coins played, so do scoring here.
-                if (coinCount>=maxCoins) {
-                    i = objs.iterator();
-                    while (i.hasNext()) {
-                        MoveObj obj = i.next(); // must be called before you can call i.remove()
-                        //if the coin is within a bed, score it
-                        int bed = getBed((int)obj.y);
-                        if (bed>0 && obj.state>=0) { //don't include coin if voided. (ie. state is -1
-                            score[playerNum][0] += bed; //add the score onto player total // used in portsmouth rules
-                            //if already three, increment opponent up to three, else increment player up to three
-                            if (!addPoint(playerNum, bed, true)) addPoint(1-playerNum,bed,false);
-                            if (score[playerNum][beds+1]>=beds) winner = playerNum;
-                            //THIS IS A WIN !!!!! reset all
-                            // TODO would be good to have a "scoring" state where the coins and scores are animated
 
-                        }
-                    }
-                    coinCount=0;
-                    objs.clear();
-                    if (winner>=0){
-                        Toast.makeText(getContext(), "Won by "+pName[winner], Toast.LENGTH_LONG).show();
-                        for (int f = 0; f <= score.length; f++) score[0][f] = score[1][f] = 0; /* set scores to zero */
-                        playerNum = 0;
-                        winner = -1;
-                    } else playerNum=1-playerNum;
+            //for each coin, determine new potential score
+            for (int f = 0; f < score[0].length; f++) {
+                score[0][f][1] = 0;
+                score[1][f][1] = 0; /* set potential scores to zero TODO - const would be clearer */
+            }
 
-                    // TODO - if progressive (Oxford) then return some coins
+            for (MoveObj obj : objs) {
+                //if the coin is within a bed, score it
+                int bed = getBed((int) obj.y);
+                if (bed > 0 && obj.state >= 0) { //don't include coin if voided. (ie. state is -1
+                    score[playerNum][0][1] += bed; //add the score onto player potential total // used in portsmouth rules
+                    // if already three, increment opponent up to three, else increment player up to three
+                    if (!addPoint(playerNum, bed, true)) addPoint(1 - playerNum, bed, false);
+                    if (potential(score[playerNum][beds + 1]) >= beds) winner = playerNum;
+                    //THIS IS A WIN !!!!! reset all could even break the for loop!
+                    // TODO would be good to have a "scoring" state where the coins and scores are animated
+                }
+            }
+
+            if (--coinsLeft <= 0) {
+                // all coins used up - so end of turn - although in progressive, some could be returned
+                // TODO - if progressive (Oxford) then return some coins
+
+                // potential scores become real scores.
+
+                for (int f = 0; f < score[0].length; f++) {
+                    score[0][f][0] = potential(score[0][f]);
+                    score[1][f][0] = potential(score[1][f]);
+                    score[0][f][1] = 0;
+                    score[1][f][1] = 0; /* set potential scores to zero TODO - const would be clearer */
                 }
 
-                // add a new coin - this could be first coin
-                // TODO in combat mode we alternate playerNum
-                inPlay = new MoveObj(11 + playerNum, coinR, screenW / 2, screenH - bedH, 5, 0);
-                inPlay.wallBounce=rebounds; //enable or disable wall bounce TODO - move into constructor
+                playerNum=1-playerNum;
+                coinsLeft = maxCoins;
+                objs.clear();
+
+
+                if (winner>=0){
+                    Toast.makeText(getContext(), "Won by "+pName[winner], Toast.LENGTH_LONG).show();
+                    for (int f = 0; f < score[0].length; f++) {
+                        score[0][f][0] = 0;
+                        score[0][f][1] = 0;
+                        score[1][f][0] = 0;
+                        score[1][f][1] = 0; /* set scores to zero */
+                    }
+                    playerNum = 0;
+                    winner = -1;
+                }
+
+            }
+
+            // add a new coin - this could be first coin
+            // TODO in combat mode we alternate playerNum
+            inPlay = new MoveObj(11 + playerNum, coinR, screenW / 2, screenH - bedH, 5, 0);
+            inPlay.wallBounce=rebounds; //enable or disable wall bounce TODO - move into constructor
             objs.add(inPlay);
-                if (sounds) parent.player.play(parent.placeSound,1,1,1,0,1);
+            if (sounds) parent.player.play(parent.placeSound,1,1,1,0,1);
         }
-
-        // TODO display potential scores
-
 
     }
 
-    private void drawScore(Canvas c,int score, float x, float y){
+    private void drawScore(Canvas c, int[] score, float x, float y){
 
-        int div = bedH/bedScore; // this splits the verts
-        for (int i = Math.min(score,bedScore-1); i>0; i--) {
-            c.drawLine(x + i * div*01.1f, y + bedH * 0.2f, x + i * div * 0.9f, y + bedH * 0.8f, outlinepaint);
+        // draw lines for the points with a horizontal when bed is filled
+        // should perhaps be off the canvas and use other views to handle this.
+
+        int div = bedH/bedScore; // this splits the verts EFF precalc this plus the 1.1f multiple
+        // draw real scores first
+        for (int i = 1; i <= score[0]; i++) {
+            if (i == bedScore) //if this is a closed bed then use horizontal
+                c.drawLine(x + bedH*0.15f, y + bedH * 0.45f, x+bedH*0.85f, y + bedH * 0.55f, outlinepaint);
+            else
+                c.drawLine(x + i * div*01.1f, y + bedH * 0.2f, x + i * div * 0.9f, y + bedH * 0.8f, outlinepaint);
         }
-        if (score == bedScore) c.drawLine(x + bedH*0.15f, y + bedH * 0.45f, x+bedH*0.85f, y + bedH * 0.55f, outlinepaint);
-
+        for (int i = score[0]+1; i <= potential(score); i++) {
+            if (i == bedScore) //if this is a closed bed then use horizontal
+                c.drawLine(x + bedH*0.15f, y + bedH * 0.45f, x+bedH*0.85f, y + bedH * 0.55f, linepaint);
+            else
+                c.drawLine(x + i * div*01.1f, y + bedH * 0.2f, x + i * div * 0.9f, y + bedH * 0.8f, linepaint);
+        }
 
     }
 
@@ -334,25 +371,29 @@ public class ShoveDrawView extends View {
 
     private boolean addPoint(int player, int bed, boolean scorer){
         // if the bed is full cannot add so return false - point may go to opponent
-        if (score[player][bed] == bedScore) return false;
+        if (potential(score[player][bed]) == bedScore) return false;
 
-        // if the bed will not get filled then add
-        if (score[player][bed] < bedScore-1){
-            score[player][bed]++;
+        // if the bed will not get filled then add to potential score
+        if (potential(score[player][bed]) < bedScore-1){
+            score[player][bed][1]++;
             return true;
         }
 
-        // remaining case is that a bed will bet filled. This cannot be allowed if a non-scorer would win.
-        if (!scorer && score[player][beds + 1] >= beds - 1) return false;
+        // remaining case is that a bed will get filled. This cannot be allowed if a non-scorer would win.
+        if (!scorer && potential(score[player][beds + 1]) >= beds - 1) return false;
 
-        score[player][bed]++;
-        score[player][beds + 1]++;
+        score[player][bed][1]++;
+        score[player][beds + 1][1]++;
         return true;
+    }
+
+    private int potential(int[] points){
+        return points[0]+points[1];
     }
 
 
 
-    // TODO - pull in the cache here - rather than the onStart()
+
     public void saveData() throws IOException {
         File file = new File(getContext().getCacheDir(), "moveObjs");
         ObjectOutputStream os = new ObjectOutputStream(new FileOutputStream(file));
@@ -366,17 +407,19 @@ public class ShoveDrawView extends View {
     }
 
     public void restoreData() throws IOException,ClassNotFoundException {
+        coinsLeft = maxCoins+1; // will get reduced by one if new coin played
         File file = new File(getContext().getCacheDir(), "moveObjs");
         ObjectInputStream is = new ObjectInputStream(new FileInputStream(file));
         objs = (ArrayList) is.readObject();
-        coinCount = objs.size()-1;
-        if (coinCount >= 0) {
-            inPlay = objs.get(coinCount);
+        int coinsPlayed = objs.size();
+        if (coinsPlayed > 0) {
+            inPlay = objs.get(coinsLeft-1);
             playerNum=inPlay.type-11;
         }
+        coinsLeft-=coinsPlayed;
         file = new File(getContext().getCacheDir(), "Scores");
         is = new ObjectInputStream(new FileInputStream(file));
-        score= (int[][]) is.readObject();
+        score = (int[][][]) is.readObject();
         Log.d("deserialise", objs.toString());
     }
 

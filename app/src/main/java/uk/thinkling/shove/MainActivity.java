@@ -1,6 +1,7 @@
 package uk.thinkling.shove;
 
 import android.annotation.TargetApi;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.media.AudioAttributes;
 import android.media.AudioManager;
@@ -9,6 +10,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -20,10 +22,10 @@ import android.widget.Toast;
 import java.io.*;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends AppCompatActivity {
 
 
-    View myDrawView;
+    ShoveDrawView myDrawView;
     Handler mHandler;
     SoundPool player;
     int clinkSound, clunkSound, placeSound, slideSound;
@@ -45,13 +47,12 @@ public class MainActivity extends ActionBarActivity {
         HighScoreText = (TextView) findViewById(R.id.HighScoreText);
 
         // find the drawView, parent and index (for switching)
-        myDrawView = findViewById(R.id.drawView);
+        myDrawView = (ShoveDrawView) findViewById(R.id.drawView);
         parent = (ViewGroup) myDrawView.getParent();
         index = parent.indexOfChild(myDrawView);
 
         // start the timer handler that will invalidate the view
         mHandler = new Handler();
-        mHandler.postDelayed(mRunnable, 1000);
 
         //set up the sound player
 
@@ -77,17 +78,17 @@ public class MainActivity extends ActionBarActivity {
         editor.putInt("hiscore", 99);
         editor.putString("test", "preferences OK");
         editor.commit();*/
+        //stop the callback loop
+        mHandler.removeCallbacks(mRunnable);
 
-        if (myDrawView instanceof ShoveDrawView) {
-            // serialize
-            try {
-                ((ShoveDrawView) myDrawView).saveData();
-                Toast.makeText(getBaseContext(), "onPause - OK", Toast.LENGTH_SHORT).show();
-            } catch (IOException ex) {
-                Toast.makeText(getBaseContext(), "onPause - Fail", Toast.LENGTH_SHORT).show();
-                Log.d("onPause", ex.toString());
-            }
+        try {
+             myDrawView.saveData();
+            Toast.makeText(getBaseContext(), "onPause - OK", Toast.LENGTH_SHORT).show();
+        } catch (IOException ex) {
+            Toast.makeText(getBaseContext(), "onPause - Fail", Toast.LENGTH_SHORT).show();
+            Log.d("onPause", ex.toString());
         }
+
     }
 
     @Override
@@ -99,15 +100,15 @@ public class MainActivity extends ActionBarActivity {
     protected void onResume() {
         super.onResume();
 
-        if (myDrawView instanceof ShoveDrawView) {
-            // reload prefs
+
             try {
-                ((ShoveDrawView) myDrawView).loadPrefs();
+                myDrawView.loadPrefs();
                 Toast.makeText(getBaseContext(), "onResume - OK", Toast.LENGTH_SHORT).show();
             } catch (Exception ex) {
                 Toast.makeText(getBaseContext(), "onResume - Fail", Toast.LENGTH_SHORT).show();
             }
-        }
+        // start the timer handler that will invalidate the view
+        mHandler.postDelayed(mRunnable, 1000);
 
     }
 
@@ -153,6 +154,9 @@ public class MainActivity extends ActionBarActivity {
 
         @Override
         public void run() {
+
+            // Update the coin positions and scoring etc.
+            myDrawView.update();
             /** invalidate the view - forcing it to redraw **/
             myDrawView.invalidate();
 

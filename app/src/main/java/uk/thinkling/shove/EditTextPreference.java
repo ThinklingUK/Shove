@@ -1,6 +1,8 @@
 package uk.thinkling.shove;
 
 import android.content.Context;
+import android.os.Build;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 
 /**
@@ -38,4 +40,11 @@ public class EditTextPreference extends android.preference.EditTextPreference {
         // Allow %s formatting string to be used in title - should check for non-null as above
         return String.format(title, getText());
     }
+
+    @Override
+    public void setText(String value) {
+        super.setText(value);
+        notifyChanged();
+    }
+
 }
