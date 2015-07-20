@@ -1,9 +1,17 @@
 <resources>
     <string name="app_name">Shove</string>
-
-    <string name="hello_string">Hello Wombats!</string>
     <string name="action_settings">Settings</string>
-
-<!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="str_instructions"><![CDATA[
+        <p>The winner is the first to fill all the beds.</p>
+        <p>There are <b>%1$d beds</b> marked out across the board and a vertical line on each side.</p>
+        <p>Each player has a turn sliding their <b>%2$d coins</b> up the board with the aim of coins ending in a bed to score.</p>
+        <p>Once they have a total score of <b>%3$d for a bed</b>, that bed is considered filled.</p>
+        <p>At the end of a player\'s turn, any valid scores are added to that player\'s score for the bed.</p>
+        <p>If the bed has already been filled, that bed\'s scores will go to the opponent (unless doing so would cause a win).</p>
+        <p>A coin that does not reach the first bed may be replayed.</p>
+        <p>Coins that strike the sides will <b>%4$s off</b> the edge.</p>
+        <p>Coins crossing the side rails will <b>%5$s valid</b> for scoring.</p>
+        ]]>
+</string>
+    <string name="Score_File_Name">Scores</string>
 </resources>

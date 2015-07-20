@@ -1,6 +1,8 @@
 package uk.thinkling.shove;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.media.AudioAttributes;
@@ -8,29 +10,29 @@ import android.media.AudioManager;
 import android.media.SoundPool;
 import android.os.Build;
 import android.os.Handler;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import android.text.Html;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.*;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
 
 
     ShoveDrawView myDrawView;
+    RelativeLayout overlay, instructions;
     Handler mHandler;
     SoundPool player;
     int clinkSound, clunkSound, placeSound, slideSound;
 
-    public TextView ScoreText,TimeLeftText,HighScoreText;
+    public TextView HighScoreText, InstructionText;
     ViewGroup parent;
     int index;
 
@@ -41,13 +43,13 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // find the text views
-        ScoreText = (TextView) findViewById(R.id.ScoreView);
-        TimeLeftText = (TextView) findViewById(R.id.TimeLeftView);
         HighScoreText = (TextView) findViewById(R.id.HighScoreText);
-        HighScoreText = (TextView) findViewById(R.id.HighScoreText);
+        InstructionText = (TextView) findViewById(R.id.textInstructions);
 
         // find the drawView, parent and index (for switching)
         myDrawView = (ShoveDrawView) findViewById(R.id.drawView);
+        overlay = (RelativeLayout) findViewById(R.id.overlay);
+        instructions = (RelativeLayout) findViewById(R.id.instructions);
         parent = (ViewGroup) myDrawView.getParent();
         index = parent.indexOfChild(myDrawView);
 
@@ -103,13 +105,11 @@ public class MainActivity extends AppCompatActivity {
 
             try {
                 myDrawView.loadPrefs();
+                InstructionText.setText(myDrawView.dynamicInstructions);
                 Toast.makeText(getBaseContext(), "onResume - OK", Toast.LENGTH_SHORT).show();
             } catch (Exception ex) {
                 Toast.makeText(getBaseContext(), "onResume - Fail", Toast.LENGTH_SHORT).show();
             }
-        // start the timer handler that will invalidate the view
-        mHandler.postDelayed(mRunnable, 1000);
-
     }
 
 
@@ -174,6 +174,7 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+/*
     @Override
     //handle the clicks on the top bar menu options
         public boolean onOptionsItemSelected(MenuItem item) {
@@ -206,6 +207,96 @@ public class MainActivity extends AppCompatActivity {
 
         parent.addView(myDrawView, index);
         return super.onOptionsItemSelected(item);
+    }
+*/
+
+    // method to attach to button onclick (via listener or XML)
+    public void onPressButton(View v) {
+
+        switch (v.getId()){
+
+            case R.id.button_settings:
+                Intent intent = new Intent(this, SettingsActivity.class);
+                startActivity(intent); //TODO should really startActivitywithResult and capture here ...
+                break;
+
+            case R.id.button_instructions:
+                InstructionText.setText(Html.fromHtml(myDrawView.dynamicInstructions));
+                overlay.setVisibility(View.GONE);
+                instructions.setVisibility(View.VISIBLE);
+                break;
+
+
+            case R.id.button_close_instructions:
+                overlay.setVisibility(View.VISIBLE);
+                instructions.setVisibility(View.GONE);
+                break;
+
+
+            //TODO id changes - display if game in play
+            case R.id.button_newgame:
+                // totally new game
+                parent.removeView(myDrawView);
+                myDrawView = new ShoveDrawView(this , null);
+                parent.addView(myDrawView, index);
+
+                //clear cache
+                File file = new File(getCacheDir(), "moveObjs");
+                if (file.exists()) file.delete();
+                file = new File(getCacheDir(), "Scores");
+                if (file.exists()) file.delete();
+
+                // drop through to resume / play
+
+            case R.id.button_resume:
+
+            case R.id.playButton:
+                overlay.setVisibility(View.GONE);
+                // start the timer handler that will process moves & invalidate the view
+                mHandler.post(mRunnable);
+                break;
+
+            case R.id.pauseButton:
+                overlay.setVisibility(View.VISIBLE);
+                mHandler.removeCallbacks(mRunnable); //stop the callback loop
+                break;
+            default:
+
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (instructions.getVisibility()==View.VISIBLE ) { //NB: close instructions if shown
+            instructions.setVisibility(View.GONE);
+            overlay.setVisibility(View.VISIBLE);
+        } else if (overlay.getVisibility()!=View.VISIBLE ) { //NB: stop game and show menu if not shown
+            overlay.setVisibility(View.VISIBLE);
+            mHandler.removeCallbacks(mRunnable); //stop the callback loop
+        } else {
+            // if instructions shown , offer close dialog
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+            alertDialogBuilder.setTitle("Exit ?"); //TODO add app name?
+            alertDialogBuilder
+                    .setMessage("Click yes to exit!").setCancelable(false).setPositiveButton("Yes",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    moveTaskToBack(true);
+                                    android.os.Process.killProcess(android.os.Process.myPid());
+                                    System.exit(1);
+                                }
+                            })
+
+                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            dialog.cancel();
+                        }
+                    });
+
+            AlertDialog alertDialog = alertDialogBuilder.create();
+            alertDialog.show();
+        }
+
     }
 
 

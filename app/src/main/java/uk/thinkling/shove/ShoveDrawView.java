@@ -41,6 +41,8 @@ public class ShoveDrawView extends View {
     String[] pName = new String[2];
     boolean sounds=true, bounds=true, rebounds=true, highlight=true;
 
+    String dynamicInstructions ="";
+
     MainActivity parent;
     private final GestureDetectorCompat gdc;
 
@@ -109,9 +111,6 @@ public class ShoveDrawView extends View {
         if (score[0].length!=beds+2) score = new int[2][beds+2][2];
 
 
-        parent.TimeLeftText.setText("");
-        parent.ScoreText.setText("");
-
 
     }
 
@@ -128,6 +127,7 @@ public class ShoveDrawView extends View {
 
         @Override
         public boolean onDown(MotionEvent e) {
+            //add a state tracker - could also require hit on a coin at start
             if (inPlay.state == 1 && e.getY()> startZone) {
                 inPlay.xSpeed = inPlay.ySpeed = 0;
                 inPlay.x = e.getX();
@@ -140,9 +140,9 @@ public class ShoveDrawView extends View {
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
             // effectively a Drag detector - although would need to check that we have hit a ball first in onDown
             if (inPlay.state == 1) {
-                inPlay.x = e2.getX();
-                inPlay.y = e2.getY();
                 if (e2.getY() > startZone) {
+                    inPlay.x = e2.getX();
+                    inPlay.y = e2.getY();
                     inPlay.xSpeed = inPlay.ySpeed = 0;
                 } else {
                     // gets a speed on drag
@@ -407,17 +407,17 @@ public class ShoveDrawView extends View {
     }
 
     public void restoreData() throws IOException,ClassNotFoundException {
-        coinsLeft = maxCoins+1; // will get reduced by one if new coin played
+        coinsLeft = maxCoins; // will get reduced by one if new coin played
         File file = new File(getContext().getCacheDir(), "moveObjs");
         ObjectInputStream is = new ObjectInputStream(new FileInputStream(file));
         objs = (ArrayList) is.readObject();
-        int coinsPlayed = objs.size();
-        if (coinsPlayed > 0) {
-            inPlay = objs.get(coinsLeft-1);
+        int lastCoinPlayed = objs.size()-1;
+        if (lastCoinPlayed >= 0) {
+            inPlay = objs.get(lastCoinPlayed);
             playerNum=inPlay.type-11;
         }
-        coinsLeft-=coinsPlayed;
-        file = new File(getContext().getCacheDir(), "Scores");
+        coinsLeft-=lastCoinPlayed;
+        file = new File(getContext().getCacheDir(), getContext().getString(R.string.Score_File_Name));
         is = new ObjectInputStream(new FileInputStream(file));
         score = (int[][][]) is.readObject();
         Log.d("deserialise", objs.toString());
@@ -451,6 +451,9 @@ public class ShoveDrawView extends View {
         bmppaint.setFilterBitmap(true);
 
         //TODO if #beds changed (ie. in prefs) and mismatch with saved data, reset score data
+
+        dynamicInstructions = String.format(getContext().getString(R.string.str_instructions), beds, maxCoins, bedScore, rebounds?"bounce":"fall", bounds?"not be":"be");
+
 
     }
 }

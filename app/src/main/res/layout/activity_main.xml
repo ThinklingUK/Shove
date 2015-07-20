@@ -5,36 +5,9 @@
     android:id="@+id/layout">
 
     <uk.thinkling.shove.ShoveDrawView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/drawView"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/TimeLeftView"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:textColor="#c0c0c0"
-        android:textSize="25dp" android:textAlignment="center" android:singleLine="true"
-            />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/ScoreView"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:textColor="#c0c0c0"
-        android:textSize="25dp" android:textAlignment="center"/>
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:id="@+id/drawView"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -43,6 +16,122 @@
         android:textSize="25sp"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true" android:textColor="#c0c0c0" android:textAlignment="center"
-        android:fontFamily="serif" android:text="This is  example TExt" android:textIsSelectable="false"/>
+        android:fontFamily="serif" android:text="This is  example Text" android:textIsSelectable="false"/>
+
+    <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/pauseButton" android:layout_alignParentTop="true" android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:src="@android:drawable/ic_media_pause"
+            android:onClick="onPressButton" android:clickable="true" android:background="#33FFFFFF"
+            android:layout_margin="10dp"/>
+
+
+    <RelativeLayout android:id="@+id/overlay"
+                  android:layout_width="fill_parent"
+                  android:layout_height="fill_parent"
+                  android:background="#33FFFFFF"
+                  android:clickable="true"
+                  android:visibility="visible">
+        <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/playButton" android:layout_alignParentTop="true" android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
+                android:src="@android:drawable/ic_media_play"
+                android:onClick="onPressButton" android:clickable="true" android:background="#FFCCCCCC"
+                android:layout_margin="10dp"/>
+
+        <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center"
+                android:layout_centerVertical="true" android:layout_centerHorizontal="true" android:padding="50dp"
+                android:background="@color/background_material_light">
+
+
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Shove Ha&apos;penny"
+                    android:id="@+id/textView" android:paddingBottom="@dimen/abc_dialog_list_padding_vertical_material"
+                    android:textSize="@dimen/abc_text_size_headline_material"/>
+            <Button
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Instructions"
+                        android:id="@+id/button_instructions" android:layout_gravity="center_horizontal"
+                        android:onClick="onPressButton"/>
+
+            <Button
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Settings"
+                    android:id="@+id/button_settings" android:layout_gravity="center_horizontal"
+                    android:onClick="onPressButton"/>
+
+            <Button
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:text="New Game"
+                        android:id="@+id/button_newgame" android:layout_gravity="center_horizontal"
+                        android:onClick="onPressButton"/>
+
+                <Button
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Resume Game"
+                        android:id="@+id/button_resume" android:layout_gravity="center_horizontal"
+                        android:onClick="onPressButton"/>
+
+        </LinearLayout>
+    </RelativeLayout>
+
+    <RelativeLayout android:id="@+id/instructions"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:background="#33FFFFFF"
+                    android:clickable="true"
+                    android:visibility="gone">
+
+        <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/button_close_instructions" android:layout_alignParentTop="true" android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
+                android:src="@android:drawable/ic_menu_revert"
+                android:onClick="onPressButton" android:clickable="true" android:background="#FFCCCCCC"
+                android:layout_margin="10dp"/>
+
+
+        <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center"
+                android:layout_centerVertical="true" android:layout_centerHorizontal="true"  android:layout_margin="50dp" android:padding="10dp"
+                android:background="@color/background_material_light">
+
+
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceLarge"
+                    android:text="INSTRUCTIONS"
+                    android:id="@+id/textView2" android:layout_marginBottom="10dp"/>
+            <ScrollView
+                        android:id="@+id/SCROLLER_ID"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:scrollbars="vertical"
+                        android:fillViewport="true">
+                    <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text=""
+                            android:id="@+id/textInstructions" android:paddingBottom="@dimen/abc_dialog_list_padding_vertical_material"
+                            android:textSize="@dimen/abc_text_size_medium_material"/>
+                </ScrollView>
+
+        </LinearLayout>
+        </RelativeLayout>
 
 </RelativeLayout>

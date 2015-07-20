@@ -8,7 +8,7 @@
 
     <header
             android:fragment="uk.thinkling.shove.SettingsActivity$SettingsAdvFragment"
-            android:title="Advanced"/>
+            android:title="Advanced Settings"/>
 
 <!--    <header
             android:fragment="uk.thinkling.shove.SettingsActivity$TestPreferenceFragment"

@@ -47,6 +47,11 @@ public class MoveObj implements Serializable {
         this.radius = radius;
         this.mass= 4 / 3 * 3.142 * radius * radius;
 
+        setPaint();
+
+    }
+
+    private void setPaint() {
         switch (type) {
             case 0:
                 paint.setColor(Color.parseColor("#FFFFFF"));
@@ -73,7 +78,6 @@ public class MoveObj implements Serializable {
         }
 
         paint.setAntiAlias(true);
-
     }
 
     // Based on radius, sets random position and speed
@@ -103,6 +107,7 @@ public class MoveObj implements Serializable {
         in.defaultReadObject();
         paint = new Paint();
         paint.setColor((int) in.readObject());
+        setPaint();
         Log.d("deserialize", this.toString());
     }
 
