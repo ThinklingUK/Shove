@@ -108,7 +108,6 @@ public class MoveObj implements Serializable {
         paint = new Paint();
         paint.setColor((int) in.readObject());
         setPaint();
-        Log.d("deserialize", this.toString());
     }
 
     public String toString() {

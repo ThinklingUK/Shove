@@ -71,7 +71,6 @@ public class ShoveDrawView extends View {
     // this happens if the screen size changes - including the first time - it is measured. Here is where we get width and height
     @Override
     protected void onSizeChanged(int w, int h, int oldW, int oldH) {
-        Log.d("onMeasure", w + " " + h);
         screenW = w;
         screenH = h;
 
@@ -93,7 +92,7 @@ public class ShoveDrawView extends View {
         try {
             loadPrefs();
         } catch (Exception e){
-            Log.d("LOADING PREFS",  e.getMessage());
+            //Log.e("LOADING PREFS",  e.getMessage());
         }
 
 
@@ -102,7 +101,7 @@ public class ShoveDrawView extends View {
         try {
             restoreData();
         } catch (Exception ex){ //could be FileNotFoundException, IOException, ClassNotFoundException
-            Log.d("deserialise",ex.toString());
+            //Log.e("deserialise",ex.toString());
         }
 
         //TODO - if beds changed, then stored object radius may be inaccurate
@@ -403,7 +402,6 @@ public class ShoveDrawView extends View {
         os = new ObjectOutputStream(new FileOutputStream(file));
         os.writeObject(score);
         os.close();
-        Log.d("serialize onPause",objs.toString());
     }
 
     public void restoreData() throws IOException,ClassNotFoundException {
@@ -420,7 +418,6 @@ public class ShoveDrawView extends View {
         file = new File(getContext().getCacheDir(), getContext().getString(R.string.Score_File_Name));
         is = new ObjectInputStream(new FileInputStream(file));
         score = (int[][][]) is.readObject();
-        Log.d("deserialise", objs.toString());
     }
 
     // TODO - pull in the cache here - rather than the onStart()

@@ -84,11 +84,11 @@ public class MainActivity extends Activity {
         mHandler.removeCallbacks(mRunnable);
 
         try {
-             myDrawView.saveData();
-            Toast.makeText(getBaseContext(), "onPause - OK", Toast.LENGTH_SHORT).show();
+            myDrawView.saveData();
+            //Toast.makeText(getBaseContext(), "onPause - OK", Toast.LENGTH_SHORT).show();
         } catch (IOException ex) {
-            Toast.makeText(getBaseContext(), "onPause - Fail", Toast.LENGTH_SHORT).show();
-            Log.d("onPause", ex.toString());
+            //Toast.makeText(getBaseContext(), "onPause - Fail", Toast.LENGTH_SHORT).show();
+            //Log.e("onPause", ex.toString());
         }
 
     }
@@ -106,9 +106,9 @@ public class MainActivity extends Activity {
             try {
                 myDrawView.loadPrefs();
                 InstructionText.setText(myDrawView.dynamicInstructions);
-                Toast.makeText(getBaseContext(), "onResume - OK", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getBaseContext(), "onResume - OK", Toast.LENGTH_SHORT).show();
             } catch (Exception ex) {
-                Toast.makeText(getBaseContext(), "onResume - Fail", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getBaseContext(), "onResume - Fail", Toast.LENGTH_SHORT).show();
             }
     }
 
