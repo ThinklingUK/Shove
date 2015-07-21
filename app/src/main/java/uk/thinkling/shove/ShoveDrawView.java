@@ -106,8 +106,7 @@ public class ShoveDrawView extends View {
 
         //TODO - if beds changed, then stored object radius may be inaccurate
         //TODO if #beds changed (ie. in prefs) and mismatch with saved data, reset score data
-        //Also if bedScore changes then scoring might fail - best to restart in these cases - or all cases?
-        if (score[0].length!=beds+2) score = new int[2][beds+2][2];
+
 
 
 
@@ -190,7 +189,7 @@ public class ShoveDrawView extends View {
 
         /*Score's Text*/
         if (coinsLeft >1)
-            parent.HighScoreText.setText(pName[playerNum] + " - " + (coinsLeft)+" coins");
+            parent.HighScoreText.setText(pName[playerNum] + " - " + (Math.min(maxCoins,coinsLeft))+" coins");
         else
             parent.HighScoreText.setText(pName[playerNum] + " - Last coin"); //TODO const etc
 
@@ -315,18 +314,22 @@ public class ShoveDrawView extends View {
                 objs.clear();
 
 
-                if (winner>=0){
-                    Toast.makeText(getContext(), "Won by "+pName[winner], Toast.LENGTH_LONG).show();
-                    for (int f = 0; f < score[0].length; f++) {
-                        score[0][f][0] = 0;
-                        score[0][f][1] = 0;
-                        score[1][f][0] = 0;
-                        score[1][f][1] = 0; /* set scores to zero */
-                    }
-                    playerNum = 0;
-                    winner = -1;
-                }
 
+            }
+
+
+            if (winner>=0){
+                Toast.makeText(getContext(), "Won by "+pName[winner], Toast.LENGTH_LONG).show();
+                for (int f = 0; f < score[0].length; f++) {
+                    score[0][f][0] = 0;
+                    score[0][f][1] = 0;
+                    score[1][f][0] = 0;
+                    score[1][f][1] = 0; /* set scores to zero */
+                }
+                playerNum = 0;
+                winner = -1;
+                coinsLeft = maxCoins;
+                objs.clear();
             }
 
             // add a new coin - this could be first coin
@@ -405,7 +408,7 @@ public class ShoveDrawView extends View {
     }
 
     public void restoreData() throws IOException,ClassNotFoundException {
-        coinsLeft = maxCoins; // will get reduced by one if new coin played
+        coinsLeft = maxCoins+1; // this only gets used if no restore. NB: will get reduced by one if new game
         File file = new File(getContext().getCacheDir(), "moveObjs");
         ObjectInputStream is = new ObjectInputStream(new FileInputStream(file));
         objs = (ArrayList) is.readObject();
@@ -414,7 +417,7 @@ public class ShoveDrawView extends View {
             inPlay = objs.get(lastCoinPlayed);
             playerNum=inPlay.type-11;
         }
-        coinsLeft-=lastCoinPlayed;
+        coinsLeft=maxCoins-lastCoinPlayed;
         file = new File(getContext().getCacheDir(), getContext().getString(R.string.Score_File_Name));
         is = new ObjectInputStream(new FileInputStream(file));
         score = (int[][][]) is.readObject();
@@ -433,7 +436,7 @@ public class ShoveDrawView extends View {
         highlight = preferences.getBoolean("pref_highlight", true);
 
 
-        maxCoins = Integer.parseInt(preferences.getString("pref_maxCoins", "5"));
+        maxCoins = Integer.parseInt(preferences.getString("pref_maxcoins", "5"));
         bedScore = Integer.parseInt(preferences.getString("pref_bedscore", "3"));
         beds = Integer.parseInt(preferences.getString("pref_beds", "9"));
 
@@ -451,6 +454,8 @@ public class ShoveDrawView extends View {
 
         dynamicInstructions = String.format(getContext().getString(R.string.str_instructions), beds, maxCoins, bedScore, rebounds?"bounce":"fall", bounds?"not be":"be");
 
+        //Also if bedScore changes then scoring might fail - best to restart in these cases - or all cases?
+        if (score[0].length!=beds+2) score = new int[2][beds+2][2];
 
     }
 }
