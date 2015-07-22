@@ -7,8 +7,8 @@ android {
         applicationId "uk.thinkling.shove"
         minSdkVersion 15
         targetSdkVersion 21
-        versionCode 4
-        versionName '1.02b'
+        versionCode 5
+        versionName '1.2.1'
     }
     buildTypes {
         release {
