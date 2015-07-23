@@ -13,10 +13,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/HighScoreText"
-        android:textSize="25sp"
+        android:textSize="@dimen/abc_text_size_title_material"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true" android:textColor="#c0c0c0" android:textAlignment="center"
-        android:fontFamily="serif" android:text="This is  example Text" android:textIsSelectable="false"/>
+        android:fontFamily="sans-serif" android:text="This is  example Text" android:textIsSelectable="false"
+        android:layout_alignBottom="@+id/pauseButton" android:gravity="center"/>
 
     <ImageButton
             android:layout_width="wrap_content"
