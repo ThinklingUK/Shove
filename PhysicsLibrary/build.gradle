@@ -1,14 +1,29 @@
-apply plugin: 'com.android.application'
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:1.1.1'
+    }
+}
+apply plugin: 'com.android.library'
+
+repositories {
+    jcenter()
+}
 
 android {
     compileSdkVersion 21
     buildToolsVersion "21.1.2"
+
     defaultConfig {
-        applicationId "uk.thinkling.shove"
-        minSdkVersion 15
-        targetSdkVersion 21
-        versionCode 6
-        versionName '1.2.2'
+        minSdkVersion 11
+        targetSdkVersion 22
+        versionCode 1
+        versionName "1.0"
+    }
+
+    compileOptions {
     }
     buildTypes {
         release {
@@ -16,13 +31,9 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-    productFlavors {
-    }
 }
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile 'com.android.support:appcompat-v7:22.2.0'
-    compile 'com.android.support:support-v4:22.2.0'
-    compile project(':PhysicsLibrary')
 }

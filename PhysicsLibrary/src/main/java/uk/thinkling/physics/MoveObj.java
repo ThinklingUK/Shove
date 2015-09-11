@@ -1,9 +1,8 @@
-package uk.thinkling.shove;
+package uk.thinkling.physics;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.util.Log;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -19,18 +18,18 @@ import java.util.Random;
 // some of the variables (object properties) are marked as transient and so will not get serialized - e.g. Paint
 
 public class MoveObj implements Serializable {
-    int type;
-    double x;
-    double y;
-    double xSpeed;  // if these are int, then the speed will gradually slow down due to rounding.
-    double ySpeed;
-    double rSpeed; //rotational speed
+    public int type;
+    public double x;
+    public double y;
+    public double xSpeed;  // if these are int, then the speed will gradually slow down due to rounding.
+    public double ySpeed;
+    public double rSpeed; //rotational speed
     int radius;
-    transient int movingStreamID = 0;
+    public transient int movingStreamID = 0;
     double mass;
-    int state = 1;
-    boolean wallBounce = true;
-    float angle = 0; // rotational angle of the object
+    public int state = 1;
+    public boolean wallBounce = true;
+    public float angle = 0; // rotational angle of the object
     int attack; // power used in collisions
     int defense; // defence used in collisions
     transient Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -106,7 +105,7 @@ public class MoveObj implements Serializable {
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         paint = new Paint();
-        paint.setColor((int) in.readObject());
+        paint.setColor( in.readInt() );
         setPaint();
     }
 

@@ -7,14 +7,19 @@ import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.view.GestureDetectorCompat;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
 
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import uk.thinkling.physics.MoveObj;
+import uk.thinkling.physics.CollisionManager;
+
+
 
 /**
  * SIMPLES
@@ -27,7 +32,7 @@ public class ShoveDrawView extends View {
 
     MoveObj inPlay;
     List<MoveObj> objs = new ArrayList<>();
-    CollisionManager collider;
+    uk.thinkling.physics.CollisionManager collider;
 
     int screenW, screenH, bedH, coinR, startZone;
     int shadoff = 4; //shadow offset TODO - factor of coinR

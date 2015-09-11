@@ -1,4 +1,4 @@
-package uk.thinkling.shove;
+package uk.thinkling.physics;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,7 +18,7 @@ public class CollisionManager {
     public List<CollisionRec> collisions = new ArrayList<>();
 
 
-    // constructor takes width and height as bounding box. Could be better if it takes bounding box as an object model to allow gaps and falloff et.
+    // constructor takes width and height as bounding box. Could be better if it takes bounding box as an object model to allow gaps and falloff etc.
     // this would make snooker simulation pockets etc. possible
     public CollisionManager(int width, int height, double friction, double gravity) {
         this.width = width;
@@ -159,9 +159,9 @@ public class CollisionManager {
     // record for holding a potential or actual collision event
     public class CollisionRec implements Comparable<CollisionRec>{
         double time;
-        MoveObj obja;
-        MoveObj objb;
-        double impactV = 0;
+        public MoveObj obja;
+        public MoveObj objb;
+        public double impactV = 0;
         // could store the event type instead of relying upon
 
 
