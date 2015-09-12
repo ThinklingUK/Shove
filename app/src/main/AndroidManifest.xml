@@ -9,7 +9,7 @@
 
         android:theme="@style/AppTheme" >
         <activity
-            android:name=".MainActivity"
+            android:name="uk.thinkling.moonshot.MainActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait" >
             <intent-filter>
@@ -18,7 +18,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".SettingsActivity"
+            android:name="uk.thinkling.moonshot.SettingsActivity"
             android:label="@string/title_activity_settings" >
         </activity>
         </application>

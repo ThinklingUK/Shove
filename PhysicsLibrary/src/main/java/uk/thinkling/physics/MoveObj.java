@@ -24,7 +24,7 @@ public class MoveObj implements Serializable {
     public double xSpeed;  // if these are int, then the speed will gradually slow down due to rounding.
     public double ySpeed;
     public double rSpeed; //rotational speed
-    int radius;
+    public int radius;
     public transient int movingStreamID = 0;
     double mass;
     public int state = 1;
