@@ -1,4 +1,4 @@
-package uk.thinkling.shove;
+package uk.thinkling.moonshot;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -12,13 +12,11 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Bundle;
 import android.text.Html;
-import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.io.*;
 
@@ -26,7 +24,7 @@ import java.io.*;
 public class MainActivity extends Activity {
 
 
-    ShoveDrawView myDrawView;
+    MoonDrawView myDrawView;
     RelativeLayout overlay, instructions;
     Handler mHandler;
     SoundPool player;
@@ -47,7 +45,7 @@ public class MainActivity extends Activity {
         InstructionText = (TextView) findViewById(R.id.textInstructions);
 
         // find the drawView, parent and index (for switching)
-        myDrawView = (ShoveDrawView) findViewById(R.id.drawView);
+        myDrawView = (MoonDrawView) findViewById(R.id.drawView);
         overlay = (RelativeLayout) findViewById(R.id.overlay);
         instructions = (RelativeLayout) findViewById(R.id.instructions);
         parent = (ViewGroup) myDrawView.getParent();
@@ -244,7 +242,7 @@ public class MainActivity extends Activity {
 
                 // totally new game
                 parent.removeView(myDrawView);
-                myDrawView = new ShoveDrawView(this , null);
+                myDrawView = new MoonDrawView(this , null);
                 parent.addView(myDrawView, index);
 
 

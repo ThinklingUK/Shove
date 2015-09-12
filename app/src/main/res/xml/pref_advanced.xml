@@ -3,7 +3,7 @@
             android:title="Board Settings"
             android:key="pref_board_settings">
 
-        <uk.thinkling.shove.ListPreference
+        <uk.thinkling.moonshot.ListPreference
                 android:key="pref_beds"
                 android:title="Number of beds"
                 android:defaultValue="9"
@@ -13,7 +13,7 @@
                 android:negativeButtonText="@null"
                 android:positiveButtonText="@null" />
 
-        <uk.thinkling.shove.ListPreference
+        <uk.thinkling.moonshot.ListPreference
                 android:key="pref_bedscore"
                 android:title="Score to fill bed"
                 android:defaultValue="3"
@@ -23,7 +23,7 @@
                 android:negativeButtonText="@null"
                 android:positiveButtonText="@null" />
 
-        <uk.thinkling.shove.ListPreference
+        <uk.thinkling.moonshot.ListPreference
                 android:key="pref_maxcoins"
                 android:title="Number of Coins"
                 android:defaultValue="5"

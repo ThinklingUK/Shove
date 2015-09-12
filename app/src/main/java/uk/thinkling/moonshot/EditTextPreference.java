@@ -1,8 +1,6 @@
-package uk.thinkling.shove;
+package uk.thinkling.moonshot;
 
 import android.content.Context;
-import android.os.Build;
-import android.text.TextUtils;
 import android.util.AttributeSet;
 
 /**
