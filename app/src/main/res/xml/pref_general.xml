@@ -4,7 +4,7 @@
             android:title="Player Settings"
             android:key="pref_player_settings">
 
-        <uk.thinkling.shove.EditTextPreference
+        <uk.thinkling.moonshot.EditTextPreference
                 android:key="pref_player1"
                 android:title="1st Player Name: %s"
                 android:summary=""
@@ -15,7 +15,7 @@
                 android:capitalize="words"
                 android:singleLine="true"
                 android:maxLines="1" />
-        <uk.thinkling.shove.EditTextPreference
+        <uk.thinkling.moonshot.EditTextPreference
                 android:key="pref_player2"
                 android:title="2nd Player Name: %s"
                 android:dialogTitle="2nd Player Name"
