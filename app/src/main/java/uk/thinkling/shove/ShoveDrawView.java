@@ -65,7 +65,7 @@ public class ShoveDrawView extends View {
 
 
     // this is the constructor - it is called when an instance of this class is created
-    public MoonDrawView(Context context, AttributeSet attrs) {
+    public ShoveDrawView(Context context, AttributeSet attrs) {
         super(context, attrs);
         //if (!isInEditMode()) ;
         parent = (MainActivity) this.getContext(); //TODO - remove all references to parent to improve editor preivew
@@ -176,7 +176,20 @@ public class ShoveDrawView extends View {
 
         super.onDraw(canvas);
 
+        //Draw the sidelines and Beds (NB: the screen has a 2bed endzone, 9 full beds, a 1 bed exclusion and 3 bed fling zone)
+        for (int f = 0; f <= beds; f++) {
+            canvas.drawLine(0, f * bedH + 2 * bedH, screenW, f * bedH + 2 * bedH, linepaint);
+            if (f < beds) {
+                canvas.drawText("" + (beds - f), screenW / 2, f * bedH + 2.6f * bedH, linepaint);
 
+                // draw the scores in the beds
+                drawScore(canvas, score[0][beds - f], 0, f * bedH + 2 * bedH);
+                drawScore(canvas, score[1][beds - f], screenW - bedH, f * bedH + 2 * bedH);
+            }
+        }
+        //draw the 2 sidebars
+        canvas.drawLine(bedH, 0, bedH, screenH, linepaint);
+        canvas.drawLine(screenW - bedH, 0, screenW - bedH, screenH, linepaint);
 
 
         /*Score's Text*/

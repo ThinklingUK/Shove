@@ -24,7 +24,7 @@ import java.io.*;
 public class MainActivity extends Activity {
 
 
-    MoonDrawView myDrawView;
+    ShoveDrawView myDrawView;
     RelativeLayout overlay, instructions;
     Handler mHandler;
     SoundPool player;
@@ -45,7 +45,7 @@ public class MainActivity extends Activity {
         InstructionText = (TextView) findViewById(R.id.textInstructions);
 
         // find the drawView, parent and index (for switching)
-        myDrawView = (MoonDrawView) findViewById(R.id.drawView);
+        myDrawView = (ShoveDrawView) findViewById(R.id.drawView);
         overlay = (RelativeLayout) findViewById(R.id.overlay);
         instructions = (RelativeLayout) findViewById(R.id.instructions);
         parent = (ViewGroup) myDrawView.getParent();
@@ -242,7 +242,7 @@ public class MainActivity extends Activity {
 
                 // totally new game
                 parent.removeView(myDrawView);
-                myDrawView = new MoonDrawView(this , null);
+                myDrawView = new ShoveDrawView(this , null);
                 parent.addView(myDrawView, index);
 
 

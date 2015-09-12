@@ -4,7 +4,7 @@
     android:background="@drawable/woodbg"
     android:id="@+id/layout">
 
-    <uk.thinkling.moonshot.MoonDrawView
+    <uk.thinkling.shove.ShoveDrawView
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:id="@+id/drawView"/>
