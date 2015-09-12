@@ -1,4 +1,4 @@
-package uk.thinkling.moonshot;
+package uk.thinkling.shove;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

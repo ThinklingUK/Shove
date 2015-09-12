@@ -1,4 +1,4 @@
-package uk.thinkling.moonshot;
+package uk.thinkling.shove;
 
 import android.os.Bundle;
 import android.preference.PreferenceActivity;

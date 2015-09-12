@@ -1,4 +1,4 @@
-package uk.thinkling.moonshot;
+package uk.thinkling.shove;
 
 import android.content.Context;
 import android.util.AttributeSet;

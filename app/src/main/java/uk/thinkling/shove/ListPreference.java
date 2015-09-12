@@ -1,4 +1,4 @@
-package uk.thinkling.moonshot;
+package uk.thinkling.shove;
 
 import android.annotation.TargetApi;
 import android.content.Context;

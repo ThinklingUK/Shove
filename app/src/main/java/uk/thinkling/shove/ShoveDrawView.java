@@ -1,4 +1,4 @@
-package uk.thinkling.moonshot;
+package uk.thinkling.shove;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -26,7 +26,7 @@ import uk.thinkling.physics.CollisionManager;
  * SIMPLES
  * Created by Ellison on 11/04/2015.
  */
-public class MoonDrawView extends View {
+public class ShoveDrawView extends View {
 
 
     /*VARIABLES*/

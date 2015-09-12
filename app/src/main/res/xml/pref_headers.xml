@@ -3,11 +3,11 @@
     <!-- These settings headers are only used on tablets. -->
 
     <header
-            android:fragment="uk.thinkling.moonshot.SettingsActivity$SettingsFragment"
+            android:fragment="uk.thinkling.shove.SettingsActivity$SettingsFragment"
             android:title="@string/pref_header_general"/>
 
     <header
-            android:fragment="uk.thinkling.moonshot.SettingsActivity$SettingsAdvFragment"
+            android:fragment="uk.thinkling.shove.SettingsActivity$SettingsAdvFragment"
             android:title="Advanced Settings"/>
 
 <!--    <header
