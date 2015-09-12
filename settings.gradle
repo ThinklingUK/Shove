@@ -1,2 +1,2 @@
-include ':app', ':PhysicsLibrary'
+include ':PhysicsLibrary'
 project(':PhysicsLibrary').projectDir = new File('D:/Work/Workspace/Android/Shove/PhysicsLibrary')
