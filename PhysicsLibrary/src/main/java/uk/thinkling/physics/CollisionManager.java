@@ -8,7 +8,7 @@ import java.util.List;
  * Collisions
  * Created by ergo on 01/06/2015.
  */
-public class CollisionManager {
+public class  CollisionManager {
 
     private final int width;
     private final int height;
@@ -16,6 +16,8 @@ public class CollisionManager {
     private final double friction;
 
     public List<CollisionRec> collisions = new ArrayList<>();
+    List<CollisionRec> nextCollisions = new ArrayList<>();
+    public List<Boundary> boundaries = new ArrayList<>();
 
 
     // constructor takes width and height as bounding box. Could be better if it takes bounding box as an object model to allow gaps and falloff etc.
@@ -27,53 +29,68 @@ public class CollisionManager {
         this.friction = friction;
     }
 
+    // add a new boundary record to the collision manager
+    public void addBoundary(int width, int height, int x, int y) {
+        boundaries.add(new Boundary(width,height,x,y));
+    }
+
+
     //deal with all the collisions for the current timeslice and maintain list of actual collisions that occurred.
-    public void collide(List<MoveObj> objs){
-        List<CollisionRec> nextCollisions = new ArrayList<>();
+    public void collide(List<MoveObj> objs) {
         double dt = 1;
         double t;
+        int listsize = objs.size();
         collisions.clear();
 
         //adjust speeds for friction and gravity
+        //EFF may be better with a hand written counted loop
         for (MoveObj obj : objs) obj.applyFrictionGravity(friction, gravity, 0.1, width, height);
 
         //for this timeslice, find first collision, forward wind to that point, adjust velocities and repeat until timeslice done.
-        while (dt >0) {
+        while (dt > 0) {
 
-            nextCollisions.clear();
+            clearCollisions();
 
-            // count for each entry in the objs array and then check for collision against all of the subsequent ones.
+            //count for each entry in the objs array and then check for collision against all of the subsequent ones.
             //ignore if time is more than 1 (wait for next cycle)
-            //TODO - can ignore if negligible speeds
-            for (int bCount1 = 0; bCount1 < objs.size(); bCount1++) {
+
+            for (int bCount1 = 0; bCount1 < listsize; bCount1++) {
                 // check wall collisions
+                //EFF can check if actually moving or not.
                 t = wallCollisionTime(objs.get(bCount1));
                 if (t < dt && t >= 0)
-                    nextCollisions.add(new CollisionRec(t, objs.get(bCount1), null));
+                    addCollision(t, objs.get(bCount1), null);
 
-                for (int bCount2 = bCount1 + 1; bCount2 < objs.size(); bCount2++) {
+                for (int bCount2 = bCount1 + 1; bCount2 < listsize; bCount2++) {
+
                     t = objCollisionTime(objs.get(bCount1), objs.get(bCount2));
                     // if a collision time due to happen, then add to the list
-                    if (t < dt && t >= 0)
-                        nextCollisions.add(new CollisionRec(t, objs.get(bCount1), objs.get(bCount2)));
+                    if (t < dt && t >= 0) {
+                        //if (t > 0 && t < 0.001) t = 0.001; // minimum granularity
+                        addCollision(t, objs.get(bCount1), objs.get(bCount2));
+                    }
                 }
             }
 
+
+
             Collections.sort(nextCollisions);
 
-            if (nextCollisions.isEmpty()) {
+            if (noCollisions()) {
                 t = dt;
             } else {
                 t = nextCollisions.get(0).time;
             }
 
             // First, wind each object to time of first collision.
-            for (MoveObj obj : objs) obj.move( t );
+            for (MoveObj obj : objs) obj.move(t);
 
             // handle all the collisions due at this exact point in time and set new velocities.
             for (CollisionRec coll : nextCollisions) {
                 if (coll.time > t) break; // if non-consecutive collision, ignore all subsequent collisions
-                if (coll.doCollision()) collisions.add(coll); // add this collision to actual collision list for subsequent analysis
+                if (coll.doCollision()) {
+                    //  collisions.add(coll); // add this collision to actual collision list for subsequent analysis
+                }
             }
             // Now consider all possible collisions between the balls in their new positions and velocities
             // (we can avoid some of the work at this step because only the possible collisions involving the two balls whose velocities
@@ -82,8 +99,37 @@ public class CollisionManager {
             // update dt (becomes 1 if no collisions so then exits)
             dt -= t;
 
+
         }
     }
+
+
+
+    private void addCollision(double time, MoveObj obja, MoveObj objb){
+        // only add an entry if the same as current or if first in list/
+        if (nextCollisions.isEmpty()) {
+            nextCollisions.add(new CollisionRec(time, obja, objb));
+        } else if (time < nextCollisions.get(0).time) {
+            //if an earlier entry found, replace first - this may mean later entries still exist
+            nextCollisions.get(0).time = time;
+            nextCollisions.get(0).obja = obja;
+            nextCollisions.get(0).objb = objb;
+        } else if (time==nextCollisions.get(0).time){
+            //   nextCollisions.add(new CollisionRec(time, obja, objb));
+        }
+    }
+
+    private void clearCollisions(){
+       // nextCollisions.clear();
+        if (nextCollisions.isEmpty()) nextCollisions.add(new CollisionRec(9999,null,null));
+        nextCollisions.get(0).time=9999;
+    }
+
+    private boolean noCollisions(){
+        //return nextCollisions.isEmpty();
+        return nextCollisions.get(0).time==9999;
+    }
+
 
     /// Calculate the time of impact of an object with bounding walls.
     /// Returns: Positive Time if a collision will occur, else negative (ie. has already occurred or no collision.
@@ -106,25 +152,67 @@ public class CollisionManager {
 
     }
 
+
+    /// Calculate the time of impact of an object with bounding walls.
+    /// Returns: Positive Time if a collision will occur, else negative (ie. has already occurred or no collision.
+    public double boundaryCollisionTime(MoveObj obj) {
+
+        //detect earliest wall collision, ie. biggest dt (from y or X strike)
+        double dt=9999;
+        if (!obj.wallBounce) return dt; //if the obj has wall bounce disabled, never return a collision time.
+
+        for (Boundary b : boundaries) {
+
+
+            if (obj.x - obj.radius + obj.xSpeed < 0)
+                dt = Math.min(dt, (obj.x - obj.radius) / -obj.xSpeed);
+            else if (obj.x + obj.radius + obj.xSpeed > width)
+                dt = Math.min(dt, (width - obj.x - obj.radius) / obj.xSpeed);
+
+            if (obj.y - obj.radius + obj.ySpeed < 0)
+                dt = Math.min(dt, (obj.y - obj.radius) / -obj.ySpeed);
+            else if (obj.y + obj.radius + obj.ySpeed > height)
+                dt = Math.min(dt, (height - obj.y - obj.radius) / obj.ySpeed);
+
+        }
+        return dt;
+    }
+
     /// Calculate the time of closest approach of two moving circles.  Also determine if the circles collide.
     /// Returns: Positive Time if a collision will occur, else negative (ie. has already occurred) or no collision.
     private double objCollisionTime(MoveObj obj1, MoveObj obj2)
     {
-        // vector Pab
+        // vector Pab - ie. the distance of the 2 centre positions
         double dX = obj2.x - obj1.x, dY = obj2.y - obj1.y;
 
-        // vector Vab
+        // vector Vab - ie. the vector of the relative speed to one another
         double vX = obj2.xSpeed - obj1.xSpeed, vY = obj2.ySpeed - obj1.ySpeed;
 
         //squares of radius, current distance, new distance and velocity vector
         double radSum = obj1.radius + obj2.radius;
+        double radDiff = Math.abs(obj1.radius - obj2.radius);
         double radSq = radSum*radSum;
         double distSq = dX*dX+dY*dY;
         double vectSq = vX*vX+vY*vY;
         double newDistSq=(dX+vX)*(dX+vX)+(dY+vY)*(dY+vY);
 
+        //if an object is within the other
+        double dist = Math.sqrt(distSq);
+        double newDist = Math.sqrt(newDistSq);
+
+        // WITHIN CIRCLE COLLISION HANDLING.
+        // the distance is less than the difference in radii, then one circle is within the other
+/*
+        if (radDiff>dist) {
+            // determine if running at tangent to circle - then deal.
+            // if internal collision will happen, time to occur is ratio of gap to distance travelled
+            if (radDiff < newDist) return (radDiff - dist) / Math.sqrt(vectSq);
+            else return -1;
+        }
+*/
+
         //if hypotenuse will be less than radii, then collision will happen at ratio of radius to distance travelled
-        if (newDistSq<radSq) return (Math.sqrt(distSq)-radSum)/Math.sqrt(vectSq);
+        if (newDistSq<radSq) return (dist-radSum)/Math.sqrt(vectSq);
 
         //additional check to catch passing balls
 
@@ -162,7 +250,7 @@ public class CollisionManager {
         public MoveObj obja;
         public MoveObj objb;
         public double impactV = 0;
-        // could store the event type instead of relying upon
+        // could store the event type instead of relying upon objb
 
 
         private CollisionRec(double time, MoveObj obja, MoveObj objb) {
@@ -179,7 +267,7 @@ public class CollisionManager {
 
         // deal with a collision at point of impact by changing the velocities
         public boolean doCollision() {
-            final double ed=0.9; // elasticity factor
+            final double ed=0.7; // elasticity factor set less than 1 to drop off
             double tX=0, tY=0; //TODO can lose this
 
             //could be a wall bounce
@@ -205,7 +293,7 @@ public class CollisionManager {
             }
 
             double dX = objb.x - obja.x, dY = objb.y - obja.y;
-            double mass_ratio = objb.mass / obja.mass;
+            double mass_ratio = obja.mass / objb.mass;
             double vX = objb.xSpeed - obja.xSpeed;
             double vY = objb.ySpeed - obja.ySpeed;
 
@@ -215,6 +303,8 @@ public class CollisionManager {
 /*
             //Method 1 -
             double dvx2, norm, fy21, sign;
+            double mass_ratio = objb.mass / obja.mass;
+
 
             if ((vX * dX + vY * dY) >= 0)
                 return false;  //return false with unchanged speeds if balls are not approaching
@@ -250,11 +340,26 @@ public class CollisionManager {
             double vaP1 = va1 + (1 + ed) * (va2 - va1) / (1 + mass_ratio);
             double vaP2 = va2 + (1 + ed) * (va1 - va2) / (1 + 1/mass_ratio);
 
+
+
+
             // Apply the projections
             obja.xSpeed = vaP1 * ax - vb1 * ay;
             obja.ySpeed = vaP1 * ay + vb1 * ax;// new vx,vy for ball 1 after collision
             objb.xSpeed = vaP2 * ax - vb2 * ay;
             objb.ySpeed = vaP2 * ay + vb2 * ax;// new vx,vy for ball 2 after collision
+
+
+            // Calculate rotational values
+            tX=dY; tY=-dX; //TODO can we lose this? - ie. fold into calculation below?
+            double vt=vX*tX+vY*tY;
+            obja.rSpeed-=vt/obja.radius; //TODO - some form of factor to reduce impact surface friction
+            objb.rSpeed-=vt/objb.radius;
+
+            double threshold = 0.5; //NB: larger than 0.5
+            // if below movement threshold, begin sleep countdown. This can be reset by movement.
+            if (obja.xSpeed > threshold || obja.xSpeed < -threshold || obja.ySpeed > threshold+gravity || obja.ySpeed < -threshold) obja.movestate=5; //TODO const
+            if (objb.xSpeed > threshold || objb.xSpeed < -threshold || objb.ySpeed > threshold || objb.ySpeed < -threshold) objb.movestate=5; //TODO const
 
 /*
             First get the surface tangent from the surface normal: t = (ny, -nx)
@@ -267,32 +372,39 @@ public class CollisionManager {
             NB:             a · b = ax × bx + ay × by
             NB: |a| is the magnitude (length) of vector a
 
-
             Now you can calculate the rotation of the ball: w = |(normal * r) cross vt|, where r is the radius of the ball.
             In two dimensions, the analog of the cross product for a=(ax,ay) and  b=(bx,by) is a x b	=	ax*by-ay*bx
             Magnitude of cross product  |a×b| = |a||b| sinθ
             Also take into account the existing rotation
-
 */
-
-            tX=dY; tY=-dX; //TODO can lose this
-            double vt=vX*tX+vY*tY;
-            obja.rSpeed-=vt/obja.radius; //TODO - some form of factor to reduce impact surface friction
-            objb.rSpeed-=vt/objb.radius;
-
 
 
 
 //TODO - limit velocities so they're not too high (e.g. screen size/25)
-            return true;
+            return false;
 
         }
 
-
-
-
-
-
-
     }
+
+    // record for holding a potential or actual collision event
+    public class Boundary{
+        public int width;
+        public int height;
+        public int x;
+        public int y;
+
+
+        public Boundary(int width, int height, int x, int y) {
+            this.width = width;
+            this.height = height;
+            this.x = x;
+            this.y = y;
+        }
+    }
+
+
+
+
+
 }

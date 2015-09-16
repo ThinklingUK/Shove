@@ -26,8 +26,9 @@ public class MoveObj implements Serializable {
     public double rSpeed; //rotational speed
     public int radius;
     public transient int movingStreamID = 0;
-    double mass;
+    public double mass;
     public int state = 1;
+    public int movestate = 5;
     public boolean wallBounce = true;
     public float angle = 0; // rotational angle of the object
     int attack; // power used in collisions
@@ -150,18 +151,25 @@ public class MoveObj implements Serializable {
 
     public void applyFrictionGravity(double friction, double gravity, double rFriction, int screenW, int screenH) {
 
-        // slow the object based on friction and accelerate down based on gravity
-        xSpeed *= 1 - friction;
-        ySpeed *= 1 - friction;
-        rSpeed *= 1 - friction;
-        ySpeed += gravity;
+        double threshold = 0.5; //NB: larger than 0.5
+        // if below movement threshold, begin sleep countdown. This can be reset by movement.
+        if (xSpeed < threshold && xSpeed > -threshold && ySpeed < threshold+gravity && ySpeed > -threshold) movestate--; else movestate=5; //TODO const
 
-        if (Math.abs(xSpeed) < 0.1 && Math.abs(ySpeed) < 0.1) xSpeed = ySpeed = 0;
+        if (movestate>0) {
+            // slow the object based on friction and accelerate down based on gravity EFF precalc this also ignore if no friction
+            xSpeed *= 1 - friction;
+            ySpeed *= 1 - friction;
+            rSpeed *= 1 - friction;
 
-        // also zero speed if out of bounds
-        if (x < -radius || x>screenW+radius || y < - radius || y > screenH+radius) xSpeed = ySpeed = 0;
+            //TODO, should stop applying gravity to objects that have stopped moving. (ie. resting on something)
+            if (type != 10) ySpeed += gravity; //don't apply gravity to type 10
 
-        // NB: TODO gravity may be cancelled out before it can build esp if friction and gravity used
+            // TODO this sleep factor should be a const
+            // NB: TODO gravity may be cancelled out before it can build esp if friction and gravity used and grav < sleep factor
+
+            // also zero speed if out of bounds
+            if (x < -radius || x > screenW + radius || y < -radius || y > screenH + radius) movestate = 0;
+        } else xSpeed=ySpeed=0;
     }
 
     public void move(double time) {
