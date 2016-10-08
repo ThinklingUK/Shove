@@ -30,6 +30,7 @@ public class  CollisionManager {
     }
 
     // add a new boundary record to the collision manager
+    // TODO Not yet used
     public void addBoundary(int width, int height, int x, int y) {
         boundaries.add(new Boundary(width,height,x,y));
     }
@@ -276,11 +277,13 @@ public class  CollisionManager {
                 if (obja.x + obja.xSpeed <= obja.radius || obja.x + obja.xSpeed + obja.radius >= width) {
                     obja.xSpeed = -obja.xSpeed * ed;
                     tY=obja.xSpeed>0?1:-1; // for rotation
+                    obja.hitSide=true;
                 }
 
                 if (obja.y + obja.ySpeed <= obja.radius || obja.y + obja.ySpeed + obja.radius >= height) {
                     obja.ySpeed = -obja.ySpeed * ed;
                     tX=obja.ySpeed>0?-1:1; //for rotation NB: as Y goes down the screen this is inverted
+                    obja.hitTop=true;
                 }
 
                 double vt=obja.xSpeed*tX+obja.ySpeed*tY;
@@ -341,7 +344,9 @@ public class  CollisionManager {
             double vaP2 = va2 + (1 + ed) * (va1 - va2) / (1 + 1/mass_ratio);
 
 
-
+            // record that the objects collided
+            obja.hitObj=true;
+            objb.hitObj=true;
 
             // Apply the projections
             obja.xSpeed = vaP1 * ax - vb1 * ay;
@@ -387,7 +392,7 @@ public class  CollisionManager {
 
     }
 
-    // record for holding a potential or actual collision event
+    // record for holding a boundary - TODO not yet used
     public class Boundary{
         public int width;
         public int height;

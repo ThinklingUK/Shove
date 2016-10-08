@@ -3,7 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/PhysicsLibrary/PhysicsLibrary.iml" filepath="$PROJECT_DIR$/PhysicsLibrary/PhysicsLibrary.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/Shove.iml" filepath="$PROJECT_DIR$/app/Shove.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Shove.iml" filepath="$PROJECT_DIR$/Shove.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>

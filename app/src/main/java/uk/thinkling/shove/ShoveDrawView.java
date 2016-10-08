@@ -35,7 +35,7 @@ public class ShoveDrawView extends View {
     List<MoveObj> objs = new ArrayList<>();
     uk.thinkling.physics.CollisionManager collider;
 
-    int screenW, screenH, bedH, coinR, startZone;
+    int screenW, screenH, bedH, sidebar, coinR, startZone;
     int shadoff = 4; //shadow offset TODO - factor of coinR
     final double gravity = 0, friction = 0.07;
     final float coinRatio = 0.33f; // bed to radius friction (0.33 is 2 thirds,
@@ -44,7 +44,10 @@ public class ShoveDrawView extends View {
     int coinsLeft = 0, winner = -1;
     int playerNum = 0;
     int[][][] score = new int[2][beds+2][2]; // [player][bed - bed zero is for point score and final bed is for tracking completed][actual|potential]
+    int[] botSpeed = new int[beds+2]; // [bed - bed zero is for min speed final bed is for max - rest are for ideals
+    int currSpeed=0;
     String[] pName = new String[2];
+    boolean[] pBot = new boolean[2];
     boolean sounds=true, bounds=true, rebounds=true, highlight=true;
 
     String dynamicInstructions ="";
@@ -68,7 +71,7 @@ public class ShoveDrawView extends View {
     public ShoveDrawView(Context context, AttributeSet attrs) {
         super(context, attrs);
         //if (!isInEditMode()) ;
-        parent = (MainActivity) this.getContext(); //TODO - remove all references to parent to improve editor preivew
+        parent = (MainActivity) this.getContext(); //TODO - remove all references to parent to improve editor preview
         gdc = new GestureDetectorCompat(parent, new MyGestureListener()); // create the gesture detector
        // for (int f = 0; f <= score.length; f++) score[0][f][0] = score[0][f][1] = score[1][f][0] = score[1][f][1] = 0; /* set scores to zero */
     }
@@ -79,7 +82,7 @@ public class ShoveDrawView extends View {
     protected void onSizeChanged(int w, int h, int oldW, int oldH) {
         screenW = w;
         screenH = h;
-
+        sidebar=screenW/10;
         float strokeSize = (w/180);  // NB this is driven by width so set in onSizeChanged
         shadowpaint.setARGB(64,0,0,0);
         linepaint.setColor(Color.parseColor("#CD7F32"));
@@ -87,8 +90,8 @@ public class ShoveDrawView extends View {
         linepaint.setStrokeWidth(strokeSize); //TODO set based on screensize
         linepaint.setTextSize(30);
         linepaint.setDither(true);                    // set the dither to true
-        linepaint.setStyle(Paint.Style.STROKE);       // set to STOKE
-        //linepaint.setStrokeJoin(Paint.Join.ROUND);    // set the join to round you want
+        linepaint.setStyle(Paint.Style.STROKE);       // set to STROKE
+        // linepaint.setStrokeJoin(Paint.Join.ROUND);    // set the join to round you want
         linepaint.setStrokeCap(Paint.Cap.ROUND);      // set the paint cap to round too
         // linepaint.setPathEffect(new CornerPathEffect(10) );   // set the path effect when they join.
         linepaint.setAntiAlias(true);
@@ -172,29 +175,31 @@ public class ShoveDrawView extends View {
 
     @Override
     // this is the method called when the view needs to be redrawn
+    // try to minimise the amount of work this needs to do.
     protected void onDraw(Canvas canvas) {
 
         super.onDraw(canvas);
 
         //Draw the sidelines and Beds (NB: the screen has a 2bed endzone, 9 full beds, a 1 bed exclusion and 3 bed fling zone)
         for (int f = 0; f <= beds; f++) {
-            canvas.drawLine(0, f * bedH + 2 * bedH, screenW, f * bedH + 2 * bedH, linepaint);
+            canvas.drawLine(0, f * bedH + 2 * bedH, screenW, f * bedH + 2 * bedH, linepaint); //draw each horizontal
             if (f < beds) {
-                canvas.drawText("" + (beds - f), screenW / 2, f * bedH + 2.6f * bedH, linepaint);
+                canvas.drawText("" + (beds - f), screenW / 2, f * bedH + 2.6f * bedH, linepaint); // display the bed number
 
                 // draw the scores in the beds
                 drawScore(canvas, score[0][beds - f], 0, f * bedH + 2 * bedH);
-                drawScore(canvas, score[1][beds - f], screenW - bedH, f * bedH + 2 * bedH);
+                drawScore(canvas, score[1][beds - f], screenW - sidebar, f * bedH + 2 * bedH);
             }
         }
         //draw the 2 sidebars
-        canvas.drawLine(bedH, 0, bedH, screenH, linepaint);
-        canvas.drawLine(screenW - bedH, 0, screenW - bedH, screenH, linepaint);
+
+        canvas.drawLine(sidebar, 0, sidebar, screenH, linepaint);
+        canvas.drawLine(screenW - sidebar, 0, screenW - sidebar, screenH, linepaint);
 
 
-        /*Score's Text*/
+        /* Scores Text */
         if (coinsLeft >1)
-            parent.HighScoreText.setText(pName[playerNum] + " - " + (Math.min(maxCoins,coinsLeft))+" coins");
+            parent.HighScoreText.setText(pName[playerNum] + " - " + coinsLeft+" coins");
         else
             parent.HighScoreText.setText(pName[playerNum] + " - Last coin"); //TODO const etc
 
@@ -211,7 +216,7 @@ public class ShoveDrawView extends View {
             canvas.drawCircle((float) obj.x+shadoff, (float) obj.y+shadoff, coinR, shadowpaint);
             matrix.reset();
             matrix.postTranslate(-coinR, -coinR);
-            matrix.postRotate(obj. angle);
+            matrix.postRotate(obj.angle);
             matrix.postTranslate((float) obj.x, (float) obj.y);
             canvas.drawBitmap(bmp, matrix, bmppaint);
 
@@ -219,7 +224,7 @@ public class ShoveDrawView extends View {
                 if (obj.state < 0) obj.draw(canvas); //TODO - move bitmap and matrix into moveObj OUTLINE IF VOIDED
                 else
                     //if the coin is within a bed, highlight it. TODO - add a temporary score to the player, or only when motion stopped
-                    if (getBed((int) obj.y) > 0)
+                    if (between(getBed((int) obj.y), 1, beds))
                         canvas.drawCircle((float) obj.x, (float) obj.y, coinR, outlinepaint);
             }
 
@@ -253,7 +258,7 @@ public class ShoveDrawView extends View {
         for (MoveObj obj : objs) {
 
             //if outside the sidebars and boundary rules are on, then void the coin if already in playzone
-            if (bounds && obj.state==0 && (obj.x-coinR<bedH || obj.x+coinR>screenW-bedH)) obj.state=-1;
+            if (bounds && obj.state==0 && (obj.x-coinR<sidebar || obj.x+coinR>screenW-sidebar)) obj.state=-1;
 
             if (obj.xSpeed != 0 || obj.ySpeed != 0) {
                 motion = true;
@@ -276,11 +281,53 @@ public class ShoveDrawView extends View {
             }
         }
 
+        // if robot, and there is a ball available, then fire it.
+        // TODO - could be accurate in aim with planned inaccuracy
+        // TODO - could place coin away from scoring coins
+        // TODO - could act tactically - aim for furthest beds with lowest score.
+        // TODO - could even learn ...
+        if (inPlay != null && inPlay.state == 1 && !motion && pBot[playerNum]) {
+            motion=true;
+            inPlay.state = 0;
+            int Smin=botSpeed[0];
+            int Smax=botSpeed[beds+1];
+            currSpeed = (int) (Math.random()*(Smax-Smin)+Smin);
+            inPlay.xSpeed = Math.random()*screenW/100-screenW/200;
+            inPlay.ySpeed = -currSpeed;  //-30=1 -90=8 -100=9 //TODO - check if screen size impacts this, or friction
+            inPlay.rSpeed = Math.random()*20-10;
+            //Toast.makeText(getContext(), "min " + Smin+" max "+Smax + " = "+inPlay.ySpeed, Toast.LENGTH_LONG).show();
+
+        }
+
+
         // if ball in play exits the start zone, then it cannot be touched
         if (inPlay != null && inPlay.state == 1 && inPlay.y < startZone) inPlay.state = 0;
 
-        //if there is no ball, or a ball in play and all motion stops, calc intermediate or final scores and play new ball if final
-        if (inPlay == null || !motion && inPlay.state != 1) {
+        // if motion stops, and still behind start zone,
+        if (inPlay != null && !motion && inPlay.state != 1 && inPlay.y>startZone) { // not even reached first line
+            inPlay.state=1; //put back into flick state
+            inPlay.y=screenH - bedH; //move back to start
+            if (botSpeed[0] < currSpeed) botSpeed[0]=currSpeed; //increase the min speed TODO this may fail if a collision has occurred
+        }
+
+        //if there is a ball in play and all motion stops, calc intermediate or final scores and play new ball if final
+        if (inPlay != null && !motion && inPlay.state != 1) {
+            coinsLeft--;
+
+            // if a bot, get bed of current coin and set speed for a score or over and under-run
+            int bed = getBed((int) inPlay.y);
+
+            // FIX - collisions could also hurt the values
+            // FIX could bounce and set wrong value can check if state is -1, and ignore
+            if (bed > beds || inPlay.hitTop) botSpeed[beds + 1] = currSpeed; // too fast
+            else if (!inPlay.hitObj) { // if no collision then consider speed as a guide
+                if (bed > 0) {
+                    botSpeed[bed] = currSpeed;
+                    if (bed == 1) botSpeed[0] = currSpeed;  // if in first bed, set this as new min
+                    if (bed == beds) botSpeed[beds+1] = currSpeed;  // if in last bed, set this as new max
+                } else if (bed < 0)
+                    botSpeed[0] = Math.max(botSpeed[0], currSpeed); //if didn't make it to the line, increase min'
+            }
 
             //for each coin, determine new potential score
             for (int f = 0; f < score[0].length; f++) {
@@ -289,9 +336,13 @@ public class ShoveDrawView extends View {
             }
 
             for (MoveObj obj : objs) {
+                obj.hitSide=false; //TODO take the opportunity to clear hit states
+                obj.hitTop=false;
+                obj.hitObj=false;
                 //if the coin is within a bed, score it
-                int bed = getBed((int) obj.y);
-                if (bed > 0 && obj.state >= 0) { //don't include coin if voided. (ie. state is -1
+
+                bed = getBed((int) obj.y);
+                if (between(bed, 1, beds) && obj.state >= 0) { //don't include coin if voided. (ie. state is -1
                     score[playerNum][0][1] += bed; //add the score onto player potential total // used in portsmouth rules
                     // if already three, increment opponent up to three, else increment player up to three
                     if (!addPoint(playerNum, bed, true)) addPoint(1 - playerNum, bed, false);
@@ -301,7 +352,7 @@ public class ShoveDrawView extends View {
                 }
             }
 
-            if (--coinsLeft <= 0) {
+            if (coinsLeft <= 0) {
                 // all coins used up - so end of turn - although in progressive, some could be returned
                 // TODO - if progressive (Oxford) then return some coins
 
@@ -314,17 +365,14 @@ public class ShoveDrawView extends View {
                     score[1][f][1] = 0; /* set potential scores to zero TODO - const would be clearer */
                 }
 
-                playerNum=1-playerNum;
+                playerNum = 1 - playerNum;
                 coinsLeft = maxCoins;
                 objs.clear();
-
-
-
             }
 
 
-            if (winner>=0){
-                Toast.makeText(getContext(), "Won by "+pName[winner], Toast.LENGTH_LONG).show();
+            if (winner >= 0) {
+                Toast.makeText(getContext(), "Won by " + pName[winner], Toast.LENGTH_LONG).show();
                 for (int f = 0; f < score[0].length; f++) {
                     score[0][f][0] = 0;
                     score[0][f][1] = 0;
@@ -337,9 +385,13 @@ public class ShoveDrawView extends View {
                 objs.clear();
             }
 
+            inPlay = null;
+        }
+
+        if (inPlay == null) {
             // add a new coin - this could be first coin
             // TODO in combat mode we alternate playerNum
-            inPlay = new MoveObj(11 + playerNum, coinR, screenW / 2, screenH - bedH, 5, 0);
+            inPlay = new MoveObj(11 + playerNum, coinR, screenW / 2, screenH - bedH, Math.random()*screenW/25-screenW/50, 0);
             inPlay.wallBounce=rebounds; //enable or disable wall bounce TODO - move into constructor
             objs.add(inPlay);
             if (sounds) parent.player.play(parent.placeSound,1,1,1,0,1);
@@ -352,17 +404,19 @@ public class ShoveDrawView extends View {
         // draw lines for the points with a horizontal when bed is filled
         // should perhaps be off the canvas and use other views to handle this.
 
-        int div = bedH/bedScore; // this splits the verts EFF precalc this plus the 1.1f multiple
+        int div = sidebar/bedScore; // this splits the verts EFF TODO precalc this plus the 0.9f and 1.1f multiple
         // draw real scores first
         for (int i = 1; i <= score[0]; i++) {
             if (i == bedScore) //if this is a closed bed then use horizontal
-                c.drawLine(x + bedH*0.15f, y + bedH * 0.45f, x+bedH*0.85f, y + bedH * 0.55f, outlinepaint);
+                c.drawLine(x + sidebar*0.15f, y + bedH * 0.45f, x+sidebar*0.85f, y + bedH * 0.55f, outlinepaint);
             else
-                c.drawLine(x + i * div*01.1f, y + bedH * 0.2f, x + i * div * 0.9f, y + bedH * 0.8f, outlinepaint);
+                c.drawLine(x + i * div*1.1f, y + bedH * 0.2f, x + i * div * 0.9f, y + bedH * 0.8f, outlinepaint);
         }
+
+        // then, add on potential score
         for (int i = score[0]+1; i <= potential(score); i++) {
             if (i == bedScore) //if this is a closed bed then use horizontal
-                c.drawLine(x + bedH*0.15f, y + bedH * 0.45f, x+bedH*0.85f, y + bedH * 0.55f, linepaint);
+                c.drawLine(x + sidebar*0.15f, y + bedH * 0.45f, x+sidebar*0.85f, y + bedH * 0.55f, linepaint);
             else
                 c.drawLine(x + i * div*01.1f, y + bedH * 0.2f, x + i * div * 0.9f, y + bedH * 0.8f, linepaint);
         }
@@ -371,7 +425,7 @@ public class ShoveDrawView extends View {
 
     private int getBed(int pos){
         if (pos>startZone) return -1; // not even reached first line
-        if ((pos+coinR)< 2*bedH) return 0; // in the endzone
+        if ((pos+coinR)< 2*bedH) return 99; // in the endzone
         if ((pos-coinR)%bedH>coinR) return 0; //overlapping. so no score
         return (beds+2-((pos-coinR)/bedH));
     }
@@ -398,6 +452,10 @@ public class ShoveDrawView extends View {
         return points[0]+points[1];
     }
 
+    private boolean between(int val, int min, int max){
+        return (val>=min && val<=max);
+    }
+
 
 
 
@@ -413,7 +471,7 @@ public class ShoveDrawView extends View {
     }
 
     public void restoreData() throws IOException,ClassNotFoundException {
-        coinsLeft = maxCoins+1; // this only gets used if no restore. NB: will get reduced by one if new game
+        coinsLeft = maxCoins; // this only gets used if no restore. NB: will get reduced by one if new game
         File file = new File(getContext().getCacheDir(), "moveObjs");
         ObjectInputStream is = new ObjectInputStream(new FileInputStream(file));
         objs = (ArrayList) is.readObject();
@@ -434,6 +492,9 @@ public class ShoveDrawView extends View {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
         pName[0] = preferences.getString("pref_player1", "Player 1");
         pName[1] = preferences.getString("pref_player2", "Player 2");
+
+        pBot[0] = preferences.getBoolean("pref_player1bot", false);
+        pBot[1] = preferences.getBoolean("pref_player2bot", false);
 
         sounds = preferences.getBoolean("pref_sounds", true);
         bounds = preferences.getBoolean("pref_bounds", true);
@@ -460,8 +521,10 @@ public class ShoveDrawView extends View {
         dynamicInstructions = String.format(getContext().getString(R.string.str_instructions), beds, maxCoins, bedScore, rebounds?"bounce":"fall", bounds?"not be":"be");
 
         //Also if bedScore changes then scoring might fail - best to restart in these cases - or all cases?
+        //TODO does pause and reset lose all calculated zones?
         if (score[0].length!=beds+2) score = new int[2][beds+2][2];
-
+        if (botSpeed.length!=beds+2) botSpeed = new int[beds+2];
+        botSpeed[0] = 0; botSpeed[beds+1]=screenH/10; //TODO factor should be affected by friction
     }
 }
 

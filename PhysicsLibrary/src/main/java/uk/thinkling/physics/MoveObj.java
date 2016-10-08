@@ -30,6 +30,9 @@ public class MoveObj implements Serializable {
     public int state = 1;
     public int movestate = 5;
     public boolean wallBounce = true;
+    public boolean hitSide = false;
+    public boolean hitTop = false;
+    public boolean hitObj = false;
     public float angle = 0; // rotational angle of the object
     int attack; // power used in collisions
     int defense; // defence used in collisions
@@ -153,7 +156,7 @@ public class MoveObj implements Serializable {
 
         double threshold = 0.5; //NB: larger than 0.5
         // if below movement threshold, begin sleep countdown. This can be reset by movement.
-        if (xSpeed < threshold && xSpeed > -threshold && ySpeed < threshold+gravity && ySpeed > -threshold) movestate--; else movestate=5; //TODO const
+        if (rSpeed < threshold && rSpeed > -threshold && xSpeed < threshold && xSpeed > -threshold && ySpeed < threshold+gravity && ySpeed > -threshold) movestate--; else movestate=5; //TODO const
 
         if (movestate>0) {
             // slow the object based on friction and accelerate down based on gravity EFF precalc this also ignore if no friction

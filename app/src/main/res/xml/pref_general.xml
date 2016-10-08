@@ -4,7 +4,7 @@
             android:title="Player Settings"
             android:key="pref_player_settings">
 
-        <uk.thinkling.moonshot.EditTextPreference
+        <uk.thinkling.shove.EditTextPreference
                 android:key="pref_player1"
                 android:title="1st Player Name: %s"
                 android:summary=""
@@ -15,7 +15,17 @@
                 android:capitalize="words"
                 android:singleLine="true"
                 android:maxLines="1" />
-        <uk.thinkling.moonshot.EditTextPreference
+
+        <SwitchPreference
+            android:key="pref_player1bot"
+            android:title="Player 1"
+            android:summaryOff="Human"
+            android:summaryOn="AI"
+            android:switchTextOff="Human"
+            android:switchTextOn="AI"
+            android:defaultValue="false" />
+
+        <uk.thinkling.shove.EditTextPreference
                 android:key="pref_player2"
                 android:title="2nd Player Name: %s"
                 android:dialogTitle="2nd Player Name"
@@ -25,6 +35,15 @@
                 android:capitalize="words"
                 android:singleLine="true"
                 android:maxLines="1" />
+
+        <SwitchPreference
+            android:key="pref_player2bot"
+            android:title="PLayer 2"
+            android:summaryOff="Human"
+            android:summaryOn="AI"
+            android:switchTextOff="Human"
+            android:switchTextOn="AI"
+            android:defaultValue="false" />
     </PreferenceCategory>
     <PreferenceCategory
             android:title="Game Settings"
@@ -49,23 +68,23 @@
                 android:switchTextOn="ON"
                 android:defaultValue="true" />
 
-            <SwitchPreference
-                    android:key="pref_highlight"
-                    android:title="Highlights"
-                    android:summaryOff="No highlight"
-                    android:summaryOn="Highlight scoring and void coins"
-                    android:switchTextOff="OFF"
-                    android:switchTextOn="ON"
-                    android:defaultValue="true" />
+        <SwitchPreference
+                android:key="pref_highlight"
+                android:title="Highlights"
+                android:summaryOff="No highlight"
+                android:summaryOn="Highlight scoring and void coins"
+                android:switchTextOff="OFF"
+                android:switchTextOn="ON"
+                android:defaultValue="true" />
 
-            <SwitchPreference
-                    android:key="pref_sounds"
-                    android:title="Sounds"
-                    android:summaryOff="Noises off"
-                    android:summaryOn="Noises on"
-                    android:switchTextOff="OFF"
-                    android:switchTextOn="ON"
-                    android:defaultValue="true" />
+        <SwitchPreference
+                android:key="pref_sounds"
+                android:title="Sounds"
+                android:summaryOff="Noises off"
+                android:summaryOn="Noises on"
+                android:switchTextOff="OFF"
+                android:switchTextOn="ON"
+                android:defaultValue="true" />
 
 
 
