@@ -13,5 +13,5 @@
         <p>Coins crossing the side rails will <b>%5$s valid</b> for scoring.</p>
         ]]>
 </string>
-    <string name="Score_File_Name">Scores</string>
+    <string name="File_Name_Players">Scores</string>
 </resources>

@@ -23,8 +23,8 @@ import uk.thinkling.physics.CollisionManager;
 
 
 /**
- * SIMPLES
- * Created by Ellison on 11/04/2015.
+ * Shove
+ * Created by David & Ellison on 11/04/2015.
  */
 public class ShoveDrawView extends View {
 
@@ -43,11 +43,9 @@ public class ShoveDrawView extends View {
     int beds=9, maxCoins=5, bedScore=3;
     int coinsLeft = 0, winner = -1;
     int playerNum = 0;
-    int[][][] score = new int[2][beds+2][2]; // [player][bed - bed zero is for point score and final bed is for tracking completed][actual|potential]
     int[] botSpeed = new int[beds+2]; // [bed - bed zero is for min speed final bed is for max - rest are for ideals
     int currSpeed=0;
-    String[] pName = new String[2];
-    boolean[] pBot = new boolean[2];
+    Player[] player = new Player[2];
     boolean sounds=true, bounds=true, rebounds=true, highlight=true;
 
     String dynamicInstructions ="";
@@ -187,21 +185,21 @@ public class ShoveDrawView extends View {
                 canvas.drawText("" + (beds - f), screenW / 2, f * bedH + 2.6f * bedH, linepaint); // display the bed number
 
                 // draw the scores in the beds
-                drawScore(canvas, score[0][beds - f], 0, f * bedH + 2 * bedH);
-                drawScore(canvas, score[1][beds - f], screenW - sidebar, f * bedH + 2 * bedH);
+                drawScore(canvas, player[0].score[beds - f], 0, f * bedH + 2 * bedH);
+                drawScore(canvas, player[1].score[beds - f], screenW - sidebar, f * bedH + 2 * bedH);
             }
         }
-        //draw the 2 sidebars
 
+        //draw the 2 sidebars
         canvas.drawLine(sidebar, 0, sidebar, screenH, linepaint);
         canvas.drawLine(screenW - sidebar, 0, screenW - sidebar, screenH, linepaint);
 
 
         /* Scores Text */
         if (coinsLeft >1)
-            parent.HighScoreText.setText(pName[playerNum] + " - " + coinsLeft+" coins");
+            parent.HighScoreText.setText(player[playerNum].name + " - " + coinsLeft+" coins");
         else
-            parent.HighScoreText.setText(pName[playerNum] + " - Last coin"); //TODO const etc
+            parent.HighScoreText.setText(player[playerNum].name + " - Last coin"); //TODO const etc
 
         //Portsmouth scores
         // parent.TimeLeftText.setText("P1: "+ score[0][0]);
@@ -286,11 +284,27 @@ public class ShoveDrawView extends View {
         // TODO - could place coin away from scoring coins
         // TODO - could act tactically - aim for furthest beds with lowest score.
         // TODO - could even learn ...
-        if (inPlay != null && inPlay.state == 1 && !motion && pBot[playerNum]) {
+
+        if (inPlay != null && inPlay.state == 1 && !motion && player[playerNum].AI) {
             motion=true;
             inPlay.state = 0;
             int Smin=botSpeed[0];
             int Smax=botSpeed[beds+1];
+            int Soffset = (Smax-Smin)/player[playerNum].accuracy; // how much to potentially miss by
+
+            // Which bed to aim for? if I know how to hit the bed, then the lowest potential score, furthest away is best.
+            int lowestPotential = 2;
+            for (int f = 1; f <= beds; f++) {
+                if (botSpeed[f]>0 && potential(player[playerNum].score[f])<=lowestPotential) {
+                    lowestPotential=potential(player[playerNum].score[f]);
+                    Smin=Smax=botSpeed[f];
+                }
+            }
+
+            // Built in inaccuracy as %age of min and max
+            Smin-=Soffset;
+            Smax+=Soffset;
+
             currSpeed = (int) (Math.random()*(Smax-Smin)+Smin);
             inPlay.xSpeed = Math.random()*screenW/100-screenW/200;
             inPlay.ySpeed = -currSpeed;  //-30=1 -90=8 -100=9 //TODO - check if screen size impacts this, or friction
@@ -329,10 +343,10 @@ public class ShoveDrawView extends View {
                     botSpeed[0] = Math.max(botSpeed[0], currSpeed); //if didn't make it to the line, increase min'
             }
 
-            //for each coin, determine new potential score
-            for (int f = 0; f < score[0].length; f++) {
-                score[0][f][1] = 0;
-                score[1][f][1] = 0; /* set potential scores to zero TODO - const would be clearer */
+            //for each coin, determine new potential score - first set potentials to zero
+            for (int f = 0; f < player[0].score.length; f++) {
+                player[0].score[f][1] = 0;
+                player[1].score[f][1] = 0; /* set potential scores to zero TODO - const would be clearer */
             }
 
             for (MoveObj obj : objs) {
@@ -343,10 +357,10 @@ public class ShoveDrawView extends View {
 
                 bed = getBed((int) obj.y);
                 if (between(bed, 1, beds) && obj.state >= 0) { //don't include coin if voided. (ie. state is -1
-                    score[playerNum][0][1] += bed; //add the score onto player potential total // used in portsmouth rules
+                    player[playerNum].score[0][1] += bed; //add the score onto player potential total // used in portsmouth rules
                     // if already three, increment opponent up to three, else increment player up to three
                     if (!addPoint(playerNum, bed, true)) addPoint(1 - playerNum, bed, false);
-                    if (potential(score[playerNum][beds + 1]) >= beds) winner = playerNum;
+                    if (potential(player[playerNum].score[beds + 1]) >= beds) winner = playerNum;
                     //THIS IS A WIN !!!!! reset all could even break the for loop!
                     // TODO would be good to have a "scoring" state where the coins and scores are animated
                 }
@@ -357,12 +371,11 @@ public class ShoveDrawView extends View {
                 // TODO - if progressive (Oxford) then return some coins
 
                 // potential scores become real scores.
-
-                for (int f = 0; f < score[0].length; f++) {
-                    score[0][f][0] = potential(score[0][f]);
-                    score[1][f][0] = potential(score[1][f]);
-                    score[0][f][1] = 0;
-                    score[1][f][1] = 0; /* set potential scores to zero TODO - const would be clearer */
+                for (int f = 0; f < player[0].score.length; f++) {
+                    player[0].score[f][0] = potential(player[0].score[f]);
+                    player[1].score[f][0] = potential(player[1].score[f]);
+                    player[0].score[f][1] = 0;
+                    player[1].score[f][1] = 0; /* set potential scores to zero TODO - const would be clearer */
                 }
 
                 playerNum = 1 - playerNum;
@@ -372,12 +385,14 @@ public class ShoveDrawView extends View {
 
 
             if (winner >= 0) {
-                Toast.makeText(getContext(), "Won by " + pName[winner], Toast.LENGTH_LONG).show();
-                for (int f = 0; f < score[0].length; f++) {
-                    score[0][f][0] = 0;
-                    score[0][f][1] = 0;
-                    score[1][f][0] = 0;
-                    score[1][f][1] = 0; /* set scores to zero */
+                Toast.makeText(getContext(), "Won by " + player[winner].name, Toast.LENGTH_LONG).show();
+
+                /* set scores to zero */
+                for (int f = 0; f < player[0].score.length; f++) {
+                    player[0].score[f][0] = 0;
+                    player[0].score[f][1] = 0;
+                    player[1].score[f][0] = 0;
+                    player[1].score[f][1] = 0;
                 }
                 playerNum = 0;
                 winner = -1;
@@ -430,21 +445,28 @@ public class ShoveDrawView extends View {
         return (beds+2-((pos-coinR)/bedH));
     }
 
-    private boolean addPoint(int player, int bed, boolean scorer){
+    private int nearestBed(int pos){
+        if (pos>startZone) return -1; // not even reached first line
+        if ((pos+coinR)< 2*bedH) return 99; // in the endzone
+        //if ((pos-coinR)%bedH>coinR) return 0; //overlapping. so no score
+        return (beds+2-((pos-coinR)/bedH));
+    }
+
+    private boolean addPoint(int playerN, int bed, boolean scorer){
         // if the bed is full cannot add so return false - point may go to opponent
-        if (potential(score[player][bed]) == bedScore) return false;
+        if (potential(player[playerN].score[bed]) == bedScore) return false;
 
         // if the bed will not get filled then add to potential score
-        if (potential(score[player][bed]) < bedScore-1){
-            score[player][bed][1]++;
+        if (potential(player[playerN].score[bed]) < bedScore-1){
+            player[playerN].score[bed][1]++;
             return true;
         }
 
         // remaining case is that a bed will get filled. This cannot be allowed if a non-scorer would win.
-        if (!scorer && potential(score[player][beds + 1]) >= beds - 1) return false;
+        if (!scorer && potential(player[playerN].score[beds + 1]) >= beds - 1) return false;
 
-        score[player][bed][1]++;
-        score[player][beds + 1][1]++;
+        player[playerN].score[bed][1]++;
+        player[playerN].score[beds + 1][1]++;
         return true;
     }
 
@@ -464,9 +486,9 @@ public class ShoveDrawView extends View {
         ObjectOutputStream os = new ObjectOutputStream(new FileOutputStream(file));
         os.writeObject(objs);
         os.close();
-        file = new File(getContext().getCacheDir(), "Scores");
+        file = new File(getContext().getCacheDir(), getContext().getString(R.string.File_Name_Players)); //TODO change to Player
         os = new ObjectOutputStream(new FileOutputStream(file));
-        os.writeObject(score);
+        os.writeObject(player);
         os.close();
     }
 
@@ -481,20 +503,22 @@ public class ShoveDrawView extends View {
             playerNum=inPlay.type-11;
         }
         coinsLeft=maxCoins-lastCoinPlayed;
-        file = new File(getContext().getCacheDir(), getContext().getString(R.string.Score_File_Name));
+        file = new File(getContext().getCacheDir(), getContext().getString(R.string.File_Name_Players)); //TODO change to Player
         is = new ObjectInputStream(new FileInputStream(file));
-        score = (int[][][]) is.readObject();
+        player = (Player[]) is.readObject();
     }
 
     // TODO - pull in the cache here - rather than the onStart()
+    // This is called onResume - so after any view of settings or after a pause etc.
     public void loadPrefs() throws ClassCastException  {
         //Load lists from file or set defaults TODO set defaults as consts
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-        pName[0] = preferences.getString("pref_player1", "Player 1");
-        pName[1] = preferences.getString("pref_player2", "Player 2");
 
-        pBot[0] = preferences.getBoolean("pref_player1bot", false);
-        pBot[1] = preferences.getBoolean("pref_player2bot", false);
+        // store names and AI settings from prefs
+        player[0].name=preferences.getString("pref_player1", "Player 1");
+        player[0].AI=preferences.getBoolean("pref_player1bot", false);
+        player[1].name=preferences.getString("pref_player2", "Player 2");
+        player[1].AI=preferences.getBoolean("pref_player2bot", false);
 
         sounds = preferences.getBoolean("pref_sounds", true);
         bounds = preferences.getBoolean("pref_bounds", true);
@@ -506,6 +530,7 @@ public class ShoveDrawView extends View {
         bedScore = Integer.parseInt(preferences.getString("pref_bedscore", "3"));
         beds = Integer.parseInt(preferences.getString("pref_beds", "9"));
 
+        //TODO should check to see if beds or bedScore previously set and have now changed. These changes should really trigger a restart
         //Number of beds then affects bed size, coin size etc.
 
         bedH = Math.round(screenH * bedSpace / (beds + 3)); //2 extra beds for end and free space after flickzone
@@ -521,10 +546,31 @@ public class ShoveDrawView extends View {
         dynamicInstructions = String.format(getContext().getString(R.string.str_instructions), beds, maxCoins, bedScore, rebounds?"bounce":"fall", bounds?"not be":"be");
 
         //Also if bedScore changes then scoring might fail - best to restart in these cases - or all cases?
-        //TODO does pause and reset lose all calculated zones?
-        if (score[0].length!=beds+2) score = new int[2][beds+2][2];
-        if (botSpeed.length!=beds+2) botSpeed = new int[beds+2];
-        botSpeed[0] = 0; botSpeed[beds+1]=screenH/10; //TODO factor should be affected by friction
+        //TODO does exit reset lose all calculated zones? - should save these
+        if (player[0].score.length!=beds+2) {
+            player[0].score = new int[beds+2][2];
+            player[1].score = new int[beds+2][2];
+            botSpeed = new int[beds+2];
+            botSpeed[0] = 0;
+            botSpeed[beds+1]=screenH/10; //TODO factor should be affected by friction
+        }
+    }
+
+
+    public class Player implements Serializable{
+        public String name = "Player";
+        public boolean AI = false;
+        public int accuracy = 10;
+        public int[] aimLow;
+        public int[] aimHigh;
+        public int[][] score = new int[beds+2][2]; //[bed - bed zero is for point score and final bed is for tracking completed][actual|potential]
+
+        public Player(String name, boolean AI, int accuracy) {
+            this.name = name;
+            this.AI = AI;
+            this.accuracy = accuracy;
+        }
     }
 }
+
 
