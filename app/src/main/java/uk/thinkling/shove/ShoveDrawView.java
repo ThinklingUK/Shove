@@ -102,14 +102,16 @@ public class ShoveDrawView extends View {
             //Log.e("LOADING PREFS",  e.getMessage());
         }
 
-
         collider = new CollisionManager(w, h, friction, gravity);
+        player[0]=new Player();
+        player[1]=new Player();
 
         try {
             restoreData();
         } catch (Exception ex){ //could be FileNotFoundException, IOException, ClassNotFoundException
             //Log.e("deserialise",ex.toString());
         }
+
 
         //TODO - if beds changed, then stored object radius may be inaccurate
         //TODO if #beds changed (ie. in prefs) and mismatch with saved data, reset score data
@@ -178,6 +180,23 @@ public class ShoveDrawView extends View {
 
         super.onDraw(canvas);
 
+
+        /* Scores Text */
+        if (coinsLeft >1)
+            parent.HighScoreText.setText(player[playerNum].name + " - " + coinsLeft+" coins");
+        else
+            parent.HighScoreText.setText(player[playerNum].name + " - Last coin"); //TODO const etc
+
+        //Portsmouth scores
+        // parent.TimeLeftText.setText("P1: "+ score[0][0]);
+        // parent.ScoreText.setText("P2: "+ score[1][0]);
+
+        // beds scored so far counting
+        // parent.TimeLeftText.setText("P1: "+ score[0][beds+1]);
+        // parent.ScoreText.setText("P2: "+ score[1][beds+1]);
+
+
+
         //Draw the sidelines and Beds (NB: the screen has a 2bed endzone, 9 full beds, a 1 bed exclusion and 3 bed fling zone)
         for (int f = 0; f <= beds; f++) {
             canvas.drawLine(0, f * bedH + 2 * bedH, screenW, f * bedH + 2 * bedH, linepaint); //draw each horizontal
@@ -194,20 +213,6 @@ public class ShoveDrawView extends View {
         canvas.drawLine(sidebar, 0, sidebar, screenH, linepaint);
         canvas.drawLine(screenW - sidebar, 0, screenW - sidebar, screenH, linepaint);
 
-
-        /* Scores Text */
-        if (coinsLeft >1)
-            parent.HighScoreText.setText(player[playerNum].name + " - " + coinsLeft+" coins");
-        else
-            parent.HighScoreText.setText(player[playerNum].name + " - Last coin"); //TODO const etc
-
-        //Portsmouth scores
-        // parent.TimeLeftText.setText("P1: "+ score[0][0]);
-        // parent.ScoreText.setText("P2: "+ score[1][0]);
-
-        // beds scored so far counting
-        // parent.TimeLeftText.setText("P1: "+ score[0][beds+1]);
-        // parent.ScoreText.setText("P2: "+ score[1][beds+1]);
 
 
         for (MoveObj obj : objs) {
@@ -309,7 +314,7 @@ public class ShoveDrawView extends View {
             inPlay.xSpeed = Math.random()*screenW/100-screenW/200;
             inPlay.ySpeed = -currSpeed;  //-30=1 -90=8 -100=9 //TODO - check if screen size impacts this, or friction
             inPlay.rSpeed = Math.random()*20-10;
-            //Toast.makeText(getContext(), "min " + Smin+" max "+Smax + " = "+inPlay.ySpeed, Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), "min " + Smin+" max "+Smax + " = "+inPlay.ySpeed, Toast.LENGTH_LONG).show();
 
         }
 
@@ -542,7 +547,7 @@ public class ShoveDrawView extends View {
         bmppaint.setFilterBitmap(true);
 
         //TODO if #beds changed (ie. in prefs) and mismatch with saved data, reset score data
-
+        //TODO move to strings
         dynamicInstructions = String.format(getContext().getString(R.string.str_instructions), beds, maxCoins, bedScore, rebounds?"bounce":"fall", bounds?"not be":"be");
 
         //Also if bedScore changes then scoring might fail - best to restart in these cases - or all cases?
@@ -550,6 +555,9 @@ public class ShoveDrawView extends View {
         if (player[0].score.length!=beds+2) {
             player[0].score = new int[beds+2][2];
             player[1].score = new int[beds+2][2];
+        }
+
+        if (botSpeed.length!=beds+2) {
             botSpeed = new int[beds+2];
             botSpeed[0] = 0;
             botSpeed[beds+1]=screenH/10; //TODO factor should be affected by friction
@@ -564,6 +572,9 @@ public class ShoveDrawView extends View {
         public int[] aimLow;
         public int[] aimHigh;
         public int[][] score = new int[beds+2][2]; //[bed - bed zero is for point score and final bed is for tracking completed][actual|potential]
+
+        public Player() {
+        }
 
         public Player(String name, boolean AI, int accuracy) {
             this.name = name;
