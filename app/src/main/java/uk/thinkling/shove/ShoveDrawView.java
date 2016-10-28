@@ -11,6 +11,8 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
+import android.util.Log;
+
 
 import java.io.*;
 import java.util.ArrayList;
@@ -96,20 +98,22 @@ public class ShoveDrawView extends View {
         outlinepaint.set(linepaint);
         outlinepaint.setColor(Color.parseColor("#FFFFFF"));
 
-        try {
-            loadPrefs();
-        } catch (Exception e){
-            //Log.e("LOADING PREFS",  e.getMessage());
-        }
-
-        collider = new CollisionManager(w, h, friction, gravity);
         player[0]=new Player();
         player[1]=new Player();
 
         try {
+            loadPrefs();
+        } catch (Exception e){
+            Log.e("LOADING PREFS",  e.getMessage());
+        }
+
+        collider = new CollisionManager(w, h, friction, gravity);
+
+
+        try {
             restoreData();
         } catch (Exception ex){ //could be FileNotFoundException, IOException, ClassNotFoundException
-            //Log.e("deserialise",ex.toString());
+            Log.e("deserialise",ex.toString());
         }
 
 
@@ -334,19 +338,24 @@ public class ShoveDrawView extends View {
             coinsLeft--;
 
             // if a bot, get bed of current coin and set speed for a score or over and under-run
-            int bed = getBed((int) inPlay.y);
+            if (player[playerNum].AI){
 
-            // FIX - collisions could also hurt the values
-            // FIX could bounce and set wrong value can check if state is -1, and ignore
-            if (bed > beds || inPlay.hitTop) botSpeed[beds + 1] = currSpeed; // too fast
-            else if (!inPlay.hitObj) { // if no collision then consider speed as a guide
-                if (bed > 0) {
-                    botSpeed[bed] = currSpeed;
-                    if (bed == 1) botSpeed[0] = currSpeed;  // if in first bed, set this as new min
-                    if (bed == beds) botSpeed[beds+1] = currSpeed;  // if in last bed, set this as new max
-                } else if (bed < 0)
-                    botSpeed[0] = Math.max(botSpeed[0], currSpeed); //if didn't make it to the line, increase min'
+                float bedZone = nearestBed((int) inPlay.y);
+
+                // if this is an AI player - store the speed against the nearest bed
+                // FIX - collisions could also hurt the values
+                // FIX could bounce and set wrong value can check if state is -1, and ignore
+                if (bedZone > beds || inPlay.hitTop) botSpeed[beds + 1] = currSpeed; // too fast
+                else if (!inPlay.hitObj) { // if no collision then consider speed as a guide
+                    if (bedZone > 0) {
+                        botSpeed[(int)bedZone] = currSpeed;
+                        if ((int)bedZone == 1) botSpeed[0] = currSpeed;  // if in first bed, set this as new min
+                        if ((int)bedZone == beds) botSpeed[beds+1] = currSpeed;  // if in last bed, set this as new max
+                    } else if (bedZone < 0)
+                        botSpeed[0] = Math.max(botSpeed[0], currSpeed); //if didn't make it to the line, increase min'
+                }
             }
+
 
             //for each coin, determine new potential score - first set potentials to zero
             for (int f = 0; f < player[0].score.length; f++) {
@@ -360,7 +369,7 @@ public class ShoveDrawView extends View {
                 obj.hitObj=false;
                 //if the coin is within a bed, score it
 
-                bed = getBed((int) obj.y);
+                int bed = getBed((int) obj.y);
                 if (between(bed, 1, beds) && obj.state >= 0) { //don't include coin if voided. (ie. state is -1
                     player[playerNum].score[0][1] += bed; //add the score onto player potential total // used in portsmouth rules
                     // if already three, increment opponent up to three, else increment player up to three
@@ -450,7 +459,7 @@ public class ShoveDrawView extends View {
         return (beds+2-((pos-coinR)/bedH));
     }
 
-    private int nearestBed(int pos){
+    private float nearestBed(int pos){
         if (pos>startZone) return -1; // not even reached first line
         if ((pos+coinR)< 2*bedH) return 99; // in the endzone
         //if ((pos-coinR)%bedH>coinR) return 0; //overlapping. so no score
@@ -571,9 +580,11 @@ public class ShoveDrawView extends View {
         public int accuracy = 10;
         public int[] aimLow;
         public int[] aimHigh;
+        public int[][] aim = new int[beds+1][2]; //[bed - bed zero is a default][low|high]
         public int[][] score = new int[beds+2][2]; //[bed - bed zero is for point score and final bed is for tracking completed][actual|potential]
 
         public Player() {
+
         }
 
         public Player(String name, boolean AI, int accuracy) {
