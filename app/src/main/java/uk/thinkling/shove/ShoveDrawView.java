@@ -292,7 +292,6 @@ public class ShoveDrawView extends View {
         // TODO - could be accurate in aim with planned inaccuracy
         // TODO - could place coin away from scoring coins
         // TODO - could act tactically - aim for furthest beds with lowest score.
-        // TODO - could even learn ...
 
         if (inPlay != null && inPlay.state == 1 && !motion && player[playerNum].AI) {
             motion=true;
@@ -304,9 +303,11 @@ public class ShoveDrawView extends View {
             // Which bed to aim for? if I know how to hit the bed, then the lowest potential score, furthest away is best.
             int lowestPotential = 2;
             for (int f = 1; f <= beds; f++) {
-                if (botSpeed[f]>0 && potential(player[playerNum].score[f])<=lowestPotential) {
-                    lowestPotential=potential(player[playerNum].score[f]);
-                    Smin=Smax=botSpeed[f];
+                if (potential(player[playerNum].score[f])<=lowestPotential) {
+                    Smin=Math.max(Smin,player[playerNum].aim[f][0]);
+                    Smax=Math.min(Smax,player[playerNum].aim[f][1]);
+
+                    //Smin=Smax=botSpeed[f];
                 }
             }
 
@@ -331,28 +332,43 @@ public class ShoveDrawView extends View {
             inPlay.state=1; //put back into flick state
             inPlay.y=screenH - bedH; //move back to start
             if (botSpeed[0] < currSpeed) botSpeed[0]=currSpeed; //increase the min speed TODO this may fail if a collision has occurred
+            // if no collisions and this is an AI, if this is a faster minimum speed, update minimum speed.
+            if (player[playerNum].AI && !inPlay.hitObj && !inPlay.hitTop && currSpeed > player[playerNum].aim[0][0]) player[playerNum].aim[0][0] = currSpeed;
         }
 
         //if there is a ball in play and all motion stops, calc intermediate or final scores and play new ball if final
         if (inPlay != null && !motion && inPlay.state != 1) {
             coinsLeft--;
 
-            // if a bot, get bed of current coin and set speed for a score or over and under-run
+            // if an AI player, get bed of current coin and set speed for a score or over and under-run
             if (player[playerNum].AI){
 
                 float bedZone = nearestBed((int) inPlay.y);
-
-                // if this is an AI player - store the speed against the nearest bed
-                // FIX - collisions could also hurt the values
-                // FIX could bounce and set wrong value can check if state is -1, and ignore
-                if (bedZone > beds || inPlay.hitTop) botSpeed[beds + 1] = currSpeed; // too fast
+                int bedZoneInt = (int)bedZone;
+                if (bedZone > beds || inPlay.hitTop) {
+                    botSpeed[beds + 1] = currSpeed; // too fast
+                    player[playerNum].aim[0][1] = Math.min(player[playerNum].aim[0][1],currSpeed);
+                }
                 else if (!inPlay.hitObj) { // if no collision then consider speed as a guide
-                    if (bedZone > 0) {
-                        botSpeed[(int)bedZone] = currSpeed;
-                        if ((int)bedZone == 1) botSpeed[0] = currSpeed;  // if in first bed, set this as new min
-                        if ((int)bedZone == beds) botSpeed[beds+1] = currSpeed;  // if in last bed, set this as new max
-                    } else if (bedZone < 0)
-                        botSpeed[0] = Math.max(botSpeed[0], currSpeed); //if didn't make it to the line, increase min'
+                    //if (bedZone > 0) {
+                    botSpeed[bedZoneInt] = currSpeed;
+                    if (bedZoneInt == 1)
+                        botSpeed[0] = currSpeed;  // if in first bed, set this as new default min
+                    if ((int) bedZone == beds)
+                        botSpeed[beds + 1] = currSpeed;  // if in last bed, set this as new max
+                    //} else if (bedZone < 0)
+                    //    botSpeed[0] = Math.max(botSpeed[0], currSpeed); //if didn't make it to the line, increase min'
+
+                    // if at lower end or higher end of bed, set the min or max for the bed (and potentially the board)
+                    if ((bedZone - bedZoneInt) < 0.5) {
+                        player[playerNum].aim[bedZoneInt][0] = Math.max(player[playerNum].aim[bedZoneInt][0], currSpeed);
+                        if (bedZoneInt == 1)
+                            player[playerNum].aim[0][0] = player[playerNum].aim[1][0];
+                    } else {
+                        player[playerNum].aim[bedZoneInt][1] = Math.min(player[playerNum].aim[bedZoneInt][1], currSpeed);
+                        if (bedZoneInt == beds)
+                            player[playerNum].aim[0][1] = player[playerNum].aim[beds][1];  // if in last bed, set this as new max
+                    }
                 }
             }
 
@@ -580,11 +596,10 @@ public class ShoveDrawView extends View {
         public int accuracy = 10;
         public int[] aimLow;
         public int[] aimHigh;
-        public int[][] aim = new int[beds+1][2]; //[bed - bed zero is a default][low|high]
+        public int[][] aim = new int[beds+1][2]; //[bed - bed zero is the full board default][min|max]
         public int[][] score = new int[beds+2][2]; //[bed - bed zero is for point score and final bed is for tracking completed][actual|potential]
 
         public Player() {
-
         }
 
         public Player(String name, boolean AI, int accuracy) {
