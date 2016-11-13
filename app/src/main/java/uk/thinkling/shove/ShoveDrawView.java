@@ -83,12 +83,12 @@ public class ShoveDrawView extends View {
         screenW = w;
         screenH = h;
         sidebar=screenW/10;
-        float strokeSize = (w/180);  // NB this is driven by width so set in onSizeChanged
+        float strokeSize = (w/280);  // TODO this is driven by width so set in onSizeChanged
         shadowpaint.setARGB(64,0,0,0);
         linepaint.setColor(Color.parseColor("#CD7F32"));
         linepaint.setStyle(Paint.Style.STROKE);
-        linepaint.setStrokeWidth(strokeSize); //TODO set based on screensize
-        linepaint.setTextSize(30);
+        linepaint.setStrokeWidth(strokeSize);
+        linepaint.setTextSize(50);
         linepaint.setDither(true);                    // set the dither to true
         linepaint.setStyle(Paint.Style.STROKE);       // set to STROKE
         // linepaint.setStrokeJoin(Paint.Join.ROUND);    // set the join to round you want
@@ -206,6 +206,7 @@ public class ShoveDrawView extends View {
             canvas.drawLine(0, f * bedH + 2 * bedH, screenW, f * bedH + 2 * bedH, linepaint); //draw each horizontal
             if (f < beds) {
                 canvas.drawText("" + (beds - f), screenW / 2, f * bedH + 2.6f * bedH, linepaint); // display the bed number
+                canvas.drawText("" + player[playerNum].aim[beds-f][0]+":" + player[playerNum].aim[beds-f][1], 20, f * bedH + 2.6f * bedH, linepaint); // display the aim
 
                 // draw the scores in the beds
                 drawScore(canvas, player[0].score[beds - f], 0, f * bedH + 2 * bedH);
@@ -296,14 +297,15 @@ public class ShoveDrawView extends View {
         if (inPlay != null && inPlay.state == 1 && !motion && player[playerNum].AI) {
             motion=true;
             inPlay.state = 0;
-            int Smin=botSpeed[0];
-            int Smax=botSpeed[beds+1];
+            int Smin=player[playerNum].aim[0][0];
+            int Smax=player[playerNum].aim[0][1];
             int Soffset = (Smax-Smin)/player[playerNum].accuracy; // how much to potentially miss by
 
             // Which bed to aim for? if I know how to hit the bed, then the lowest potential score, furthest away is best.
             int lowestPotential = 2;
             for (int f = 1; f <= beds; f++) {
                 if (potential(player[playerNum].score[f])<=lowestPotential) {
+                    lowestPotential=potential(player[playerNum].score[f]);
                     Smin=Math.max(Smin,player[playerNum].aim[f][0]);
                     Smax=Math.min(Smax,player[playerNum].aim[f][1]);
 
@@ -312,15 +314,11 @@ public class ShoveDrawView extends View {
             }
 
             // Built in inaccuracy as %age of min and max
-            Smin-=Soffset;
-            Smax+=Soffset;
-
-            currSpeed = (int) (Math.random()*(Smax-Smin)+Smin);
+            currSpeed = (int) (Math.random()*(Smax-Smin+2*Soffset)+Smin-Soffset);
             inPlay.xSpeed = Math.random()*screenW/100-screenW/200;
             inPlay.ySpeed = -currSpeed;  //-30=1 -90=8 -100=9 //TODO - check if screen size impacts this, or friction
             inPlay.rSpeed = Math.random()*20-10;
             Toast.makeText(getContext(), "min " + Smin+" max "+Smax + " = "+inPlay.ySpeed, Toast.LENGTH_LONG).show();
-
         }
 
 
@@ -360,12 +358,15 @@ public class ShoveDrawView extends View {
                     //    botSpeed[0] = Math.max(botSpeed[0], currSpeed); //if didn't make it to the line, increase min'
 
                     // if at lower end or higher end of bed, set the min or max for the bed (and potentially the board)
-                    if ((bedZone - bedZoneInt) < 0.5) {
+                    Toast.makeText(getContext(), "bedxoneinteInt is "+bedZoneInt+" bedzone is "+bedZone+" diff is "+(bedZone - bedZoneInt), Toast.LENGTH_LONG).show();
+
+                    if ((float)(bedZone - bedZoneInt) < 0.5f) {
                         player[playerNum].aim[bedZoneInt][0] = Math.max(player[playerNum].aim[bedZoneInt][0], currSpeed);
                         if (bedZoneInt == 1)
                             player[playerNum].aim[0][0] = player[playerNum].aim[1][0];
                     } else {
                         player[playerNum].aim[bedZoneInt][1] = Math.min(player[playerNum].aim[bedZoneInt][1], currSpeed);
+
                         if (bedZoneInt == beds)
                             player[playerNum].aim[0][1] = player[playerNum].aim[beds][1];  // if in last bed, set this as new max
                     }
@@ -475,11 +476,11 @@ public class ShoveDrawView extends View {
         return (beds+2-((pos-coinR)/bedH));
     }
 
-    private float nearestBed(int pos){
-        if (pos>startZone) return -1; // not even reached first line
-        if ((pos+coinR)< 2*bedH) return 99; // in the endzone
+    private float nearestBed(int pos) {
+        if (pos > startZone) return -1; // not even reached first line
+        if ((pos + coinR) < 2 * bedH) return 99; // in the endzone
         //if ((pos-coinR)%bedH>coinR) return 0; //overlapping. so no score
-        return (beds+2-((pos-coinR)/bedH));
+        return (beds + 2 - ((float) (pos - coinR) / bedH));
     }
 
     private boolean addPoint(int playerN, int bed, boolean scorer){
@@ -578,7 +579,8 @@ public class ShoveDrawView extends View {
         //Also if bedScore changes then scoring might fail - best to restart in these cases - or all cases?
         //TODO does exit reset lose all calculated zones? - should save these
         if (player[0].score.length!=beds+2) {
-            player[0].score = new int[beds+2][2];
+            player[0]= new Player(player[0].name, player[0].AI, player[0].accuracy);
+            player[1]= new Player(player[1].name, player[1].AI, player[1].accuracy);
             player[1].score = new int[beds+2][2];
         }
 
@@ -600,6 +602,10 @@ public class ShoveDrawView extends View {
         public int[][] score = new int[beds+2][2]; //[bed - bed zero is for point score and final bed is for tracking completed][actual|potential]
 
         public Player() {
+            for (int i=0; i<aim.length; i++){
+                aim[i][0]=0;
+                aim[i][1]=screenH/10; //TODO factor should be affected by friction
+            }
         }
 
         public Player(String name, boolean AI, int accuracy) {
