@@ -45,7 +45,6 @@ public class ShoveDrawView extends View {
     int beds=9, maxCoins=5, bedScore=3;
     int coinsLeft = 0, winner = -1;
     int playerNum = 0;
-    int[] botSpeed = new int[beds+2]; // [bed - bed zero is for min speed final bed is for max - rest are for ideals
     int currSpeed=0;
     Player[] player = new Player[2];
     boolean sounds=true, bounds=true, rebounds=true, highlight=true;
@@ -204,15 +203,18 @@ public class ShoveDrawView extends View {
         //Draw the sidelines and Beds (NB: the screen has a 2bed endzone, 9 full beds, a 1 bed exclusion and 3 bed fling zone)
         for (int f = 0; f <= beds; f++) {
             canvas.drawLine(0, f * bedH + 2 * bedH, screenW, f * bedH + 2 * bedH, linepaint); //draw each horizontal
+            canvas.drawText("" + player[playerNum].aim[beds-f][0]+":" + player[playerNum].aim[beds-f][1], 20, f * bedH + 2.6f * bedH, linepaint); // display the aim
+
             if (f < beds) {
                 canvas.drawText("" + (beds - f), screenW / 2, f * bedH + 2.6f * bedH, linepaint); // display the bed number
-                canvas.drawText("" + player[playerNum].aim[beds-f][0]+":" + player[playerNum].aim[beds-f][1], 20, f * bedH + 2.6f * bedH, linepaint); // display the aim
 
                 // draw the scores in the beds
                 drawScore(canvas, player[0].score[beds - f], 0, f * bedH + 2 * bedH);
                 drawScore(canvas, player[1].score[beds - f], screenW - sidebar, f * bedH + 2 * bedH);
             }
         }
+        canvas.drawText("" + player[playerNum].aim[beds+1][0]+":" + player[playerNum].aim[beds+1][1], 20, 1.6f * bedH, linepaint); // display the aim
+
 
         //draw the 2 sidebars
         canvas.drawLine(sidebar, 0, sidebar, screenH, linepaint);
@@ -221,7 +223,7 @@ public class ShoveDrawView extends View {
 
 
         for (MoveObj obj : objs) {
-            canvas.drawCircle((float) obj.x+shadoff, (float) obj.y+shadoff, coinR, shadowpaint);
+            canvas.drawCircle((float) obj.x+shadoff, (float) obj.y+shadoff, coinR, shadowpaint); //draw the shadow
             matrix.reset();
             matrix.postTranslate(-coinR, -coinR);
             matrix.postRotate(obj.angle);
@@ -289,8 +291,7 @@ public class ShoveDrawView extends View {
             }
         }
 
-        // if robot, and there is a ball available, then fire it.
-        // TODO - could be accurate in aim with planned inaccuracy
+        // if AI, and there is a ball available, then fire it.
         // TODO - could place coin away from scoring coins
         // TODO - could act tactically - aim for furthest beds with lowest score.
 
@@ -298,27 +299,30 @@ public class ShoveDrawView extends View {
             motion=true;
             inPlay.state = 0;
             int Smin=player[playerNum].aim[0][0];
-            int Smax=player[playerNum].aim[0][1];
-            int Soffset = (Smax-Smin)/player[playerNum].accuracy; // how much to potentially miss by
+            int Smax=player[playerNum].aim[beds+1][1];
+            int Soffset = (Smax-Smin)/player[playerNum].accuracy; // how much to potentially miss by percentage of range
 
             // Which bed to aim for? if I know how to hit the bed, then the lowest potential score, furthest away is best.
             int lowestPotential = 2;
+            int target = 0;
             for (int f = 1; f <= beds; f++) {
+                player[playerNum].aim[f][0]=Math.max(player[playerNum].aim[f-1][0],player[playerNum].aim[f][0]); // cascade mins up
+                player[playerNum].aim[f][1]=Math.min(player[playerNum].aim[f+1][1],player[playerNum].aim[f][1]); // cascade max down (happens over several iterations)
                 if (potential(player[playerNum].score[f])<=lowestPotential) {
                     lowestPotential=potential(player[playerNum].score[f]);
-                    Smin=Math.max(Smin,player[playerNum].aim[f][0]);
-                    Smax=Math.min(Smax,player[playerNum].aim[f][1]);
+                    target=f;
 
-                    //Smin=Smax=botSpeed[f];
                 }
             }
+            Smin=player[playerNum].aim[target][0];
+            Smax=player[playerNum].aim[target][1];
 
             // Built in inaccuracy as %age of min and max
-            currSpeed = (int) (Math.random()*(Smax-Smin+2*Soffset)+Smin-Soffset);
+            currSpeed = Math.min(player[playerNum].aim[beds+1][1],Math.max(player[playerNum].aim[0][0],(int) (Math.random()*(Smax-Smin+2*Soffset)+Smin-Soffset)));
             inPlay.xSpeed = Math.random()*screenW/100-screenW/200;
-            inPlay.ySpeed = -currSpeed;  //-30=1 -90=8 -100=9 //TODO - check if screen size impacts this, or friction
+            inPlay.ySpeed = -currSpeed; //TODO - check if screen size impacts this, or friction
             inPlay.rSpeed = Math.random()*20-10;
-            Toast.makeText(getContext(), "min " + Smin+" max "+Smax + " = "+inPlay.ySpeed, Toast.LENGTH_LONG).show();
+           // DEBUG Toast.makeText(getContext(), "min " + Smin+" max "+Smax + " = "+currSpeed, Toast.LENGTH_LONG).show();
         }
 
 
@@ -329,9 +333,8 @@ public class ShoveDrawView extends View {
         if (inPlay != null && !motion && inPlay.state != 1 && inPlay.y>startZone) { // not even reached first line
             inPlay.state=1; //put back into flick state
             inPlay.y=screenH - bedH; //move back to start
-            if (botSpeed[0] < currSpeed) botSpeed[0]=currSpeed; //increase the min speed TODO this may fail if a collision has occurred
             // if no collisions and this is an AI, if this is a faster minimum speed, update minimum speed.
-            if (player[playerNum].AI && !inPlay.hitObj && !inPlay.hitTop && currSpeed > player[playerNum].aim[0][0]) player[playerNum].aim[0][0] = currSpeed;
+            if (player[playerNum].AI && !inPlay.hitObj && !inPlay.hitTop ) player[playerNum].aim[0][0] = Math.max(player[playerNum].aim[0][0],currSpeed);
         }
 
         //if there is a ball in play and all motion stops, calc intermediate or final scores and play new ball if final
@@ -343,32 +346,20 @@ public class ShoveDrawView extends View {
 
                 float bedZone = nearestBed((int) inPlay.y);
                 int bedZoneInt = (int)bedZone;
-                if (bedZone > beds || inPlay.hitTop) {
-                    botSpeed[beds + 1] = currSpeed; // too fast
-                    player[playerNum].aim[0][1] = Math.min(player[playerNum].aim[0][1],currSpeed);
+                if (bedZoneInt > beds || inPlay.hitTop) {
+                    player[playerNum].aim[beds+1][1] = Math.min(player[playerNum].aim[beds+1][1],currSpeed);
                 }
-                else if (!inPlay.hitObj) { // if no collision then consider speed as a guide
-                    //if (bedZone > 0) {
-                    botSpeed[bedZoneInt] = currSpeed;
-                    if (bedZoneInt == 1)
-                        botSpeed[0] = currSpeed;  // if in first bed, set this as new default min
-                    if ((int) bedZone == beds)
-                        botSpeed[beds + 1] = currSpeed;  // if in last bed, set this as new max
-                    //} else if (bedZone < 0)
-                    //    botSpeed[0] = Math.max(botSpeed[0], currSpeed); //if didn't make it to the line, increase min'
+                else if (!inPlay.hitObj && bedZoneInt > 0) { // if no collision and within beds then consider speed as a guide
 
                     // if at lower end or higher end of bed, set the min or max for the bed (and potentially the board)
-                    Toast.makeText(getContext(), "bedxoneinteInt is "+bedZoneInt+" bedzone is "+bedZone+" diff is "+(bedZone - bedZoneInt), Toast.LENGTH_LONG).show();
+                    // DEBUG Toast.makeText(getContext(), "bedzoneInt is "+bedZoneInt+" bedzone is "+bedZone+" diff is "+(bedZone - bedZoneInt), Toast.LENGTH_LONG).show();
 
                     if ((float)(bedZone - bedZoneInt) < 0.5f) {
                         player[playerNum].aim[bedZoneInt][0] = Math.max(player[playerNum].aim[bedZoneInt][0], currSpeed);
-                        if (bedZoneInt == 1)
-                            player[playerNum].aim[0][0] = player[playerNum].aim[1][0];
+                        player[playerNum].aim[bedZoneInt-1][1] = Math.min(player[playerNum].aim[bedZoneInt-1][1], currSpeed);
                     } else {
                         player[playerNum].aim[bedZoneInt][1] = Math.min(player[playerNum].aim[bedZoneInt][1], currSpeed);
-
-                        if (bedZoneInt == beds)
-                            player[playerNum].aim[0][1] = player[playerNum].aim[beds][1];  // if in last bed, set this as new max
+                        player[playerNum].aim[bedZoneInt + 1][0] = Math.max(player[playerNum].aim[bedZoneInt + 1][0], currSpeed);
                     }
                 }
             }
@@ -470,17 +461,16 @@ public class ShoveDrawView extends View {
     }
 
     private int getBed(int pos){
-        if (pos>startZone) return -1; // not even reached first line
+        if (pos>startZone) return -1; // not even reached first line TODO - this only looks at midpoint, should +coinR
         if ((pos+coinR)< 2*bedH) return 99; // in the endzone
         if ((pos-coinR)%bedH>coinR) return 0; //overlapping. so no score
         return (beds+2-((pos-coinR)/bedH));
     }
 
     private float nearestBed(int pos) {
-        if (pos > startZone) return -1; // not even reached first line
+        if (pos - coinR > startZone) return -1; // not even reached first line
         if ((pos + coinR) < 2 * bedH) return 99; // in the endzone
-        //if ((pos-coinR)%bedH>coinR) return 0; //overlapping. so no score
-        return (beds + 2 - ((float) (pos - coinR) / bedH));
+        return (beds+3 - ((float) pos / bedH));
     }
 
     private boolean addPoint(int playerN, int bed, boolean scorer){
@@ -537,6 +527,9 @@ public class ShoveDrawView extends View {
         file = new File(getContext().getCacheDir(), getContext().getString(R.string.File_Name_Players)); //TODO change to Player
         is = new ObjectInputStream(new FileInputStream(file));
         player = (Player[]) is.readObject();
+        Toast.makeText(getContext(), "Loading Player Data", Toast.LENGTH_LONG).show();
+        //TODO New game wipes the AI aim data
+
     }
 
     // TODO - pull in the cache here - rather than the onStart()
@@ -579,26 +572,18 @@ public class ShoveDrawView extends View {
         //Also if bedScore changes then scoring might fail - best to restart in these cases - or all cases?
         //TODO does exit reset lose all calculated zones? - should save these
         if (player[0].score.length!=beds+2) {
-            player[0]= new Player(player[0].name, player[0].AI, player[0].accuracy);
-            player[1]= new Player(player[1].name, player[1].AI, player[1].accuracy);
-            player[1].score = new int[beds+2][2];
+            player[0]=new Player(player[0].name, player[0].AI, player[0].accuracy);
+            player[1]=new Player(player[1].name, player[1].AI, player[1].accuracy);
         }
 
-        if (botSpeed.length!=beds+2) {
-            botSpeed = new int[beds+2];
-            botSpeed[0] = 0;
-            botSpeed[beds+1]=screenH/10; //TODO factor should be affected by friction
-        }
     }
 
 
     public class Player implements Serializable{
         public String name = "Player";
         public boolean AI = false;
-        public int accuracy = 10;
-        public int[] aimLow;
-        public int[] aimHigh;
-        public int[][] aim = new int[beds+1][2]; //[bed - bed zero is the full board default][min|max]
+        public int accuracy = 20; //This is percentage offset each direction 10 is fairly inaccurate 30 is pretty good 100 is sharp
+        public int[][] aim = new int[beds+2][2]; //[bed - bed zero is the fling zone, bed+1 is the outzone][min|max]
         public int[][] score = new int[beds+2][2]; //[bed - bed zero is for point score and final bed is for tracking completed][actual|potential]
 
         public Player() {
@@ -606,9 +591,11 @@ public class ShoveDrawView extends View {
                 aim[i][0]=0;
                 aim[i][1]=screenH/10; //TODO factor should be affected by friction
             }
+            Toast.makeText(getContext(), "Taking Aim "+aim.length+" "+beds+" "+screenH/10, Toast.LENGTH_LONG).show();
         }
 
         public Player(String name, boolean AI, int accuracy) {
+            this();
             this.name = name;
             this.AI = AI;
             this.accuracy = accuracy;

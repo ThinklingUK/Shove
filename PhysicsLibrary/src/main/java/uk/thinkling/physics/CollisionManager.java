@@ -269,7 +269,7 @@ public class  CollisionManager {
         // deal with a collision at point of impact by changing the velocities
         public boolean doCollision() {
             final double ed=0.7; // elasticity factor set less than 1 to drop off
-            double tX=0, tY=0; //TODO can lose this
+            double tX=0, tY=0;
 
             //could be a wall bounce
             if (objb == null) {
@@ -287,7 +287,7 @@ public class  CollisionManager {
                 }
 
                 double vt=obja.xSpeed*tX+obja.ySpeed*tY;
-                obja.rSpeed+=vt/obja.radius*30; //TODO fixed number to convert speed into rotation
+                obja.rSpeed+=vt/obja.radius*30; //EFF fixed number to convert speed into rotation
 
                 // store impact velocity for sound
                 impactV = Math.sqrt(obja.xSpeed * obja.xSpeed + obja.ySpeed * obja.ySpeed);
@@ -330,7 +330,7 @@ public class  CollisionManager {
 
             // Method 2 - allows for inelastic collision
             double distance = Math.sqrt(dX * dX + dY * dY);
-            //TODO as is this at point of collision, is this not just radius sum
+            //EFF as is this at point of collision, is this not just radius sum
 
             // Unit vector in the direction of the collision
             double ax = dX / distance, ay = dY / distance;
