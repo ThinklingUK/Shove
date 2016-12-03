@@ -29,8 +29,8 @@
         <item>Ten</item>
         <item>Eleven</item>
         <item>Twelve</item>
-
     </string-array>
+
     <string-array name="pref_beds_list_values">
         <item>1</item>
         <item>2</item>
@@ -44,6 +44,21 @@
         <item>10</item>
         <item>11</item>
         <item>12</item>
+    </string-array>
+
+
+    <string-array name="pref_AI_list_titles">
+        <item>Human</item>
+        <item>Weak AI</item>
+        <item>Medium AI</item>
+        <item>Strong AI</item>
+    </string-array>
+
+    <string-array name="pref_AI_list_values">
+        <item>0</item>
+        <item>10</item>
+        <item>30</item>
+        <item>100</item>
     </string-array>
 
     <!-- Example settings for Data & Sync -->

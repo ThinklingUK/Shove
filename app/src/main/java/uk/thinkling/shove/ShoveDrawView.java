@@ -302,7 +302,7 @@ public class ShoveDrawView extends View {
             int Smax=player[playerNum].aim[beds+1][1];
             int Soffset = (Smax-Smin)/player[playerNum].accuracy; // how much to potentially miss by percentage of range
 
-            // Which bed to aim for? if I know how to hit the bed, then the lowest potential score, furthest away is best.
+            // Which bed to aim for? if I know how to hit the bed? the lowest potential score? furthest away? pick one at random?
             int lowestPotential = 2;
             int target = 0;
             for (int f = 1; f <= beds; f++) {
@@ -311,9 +311,9 @@ public class ShoveDrawView extends View {
                 if (potential(player[playerNum].score[f])<=lowestPotential) {
                     lowestPotential=potential(player[playerNum].score[f]);
                     target=f;
-
                 }
             }
+
             Smin=player[playerNum].aim[target][0];
             Smax=player[playerNum].aim[target][1];
 
@@ -321,7 +321,7 @@ public class ShoveDrawView extends View {
             currSpeed = Math.min(player[playerNum].aim[beds+1][1],Math.max(player[playerNum].aim[0][0],(int) (Math.random()*(Smax-Smin+2*Soffset)+Smin-Soffset)));
             inPlay.xSpeed = Math.random()*screenW/100-screenW/200;
             inPlay.ySpeed = -currSpeed; //TODO - check if screen size impacts this, or friction
-            inPlay.rSpeed = Math.random()*20-10;
+            inPlay.rSpeed = Math.random()*20-10; //randomise rotational
            // DEBUG Toast.makeText(getContext(), "min " + Smin+" max "+Smax + " = "+currSpeed, Toast.LENGTH_LONG).show();
         }
 
@@ -503,7 +503,7 @@ public class ShoveDrawView extends View {
 
 
     public void saveData() throws IOException {
-        File file = new File(getContext().getCacheDir(), "moveObjs");
+        File file = new File(getContext().getCacheDir(), getContext().getString(R.string.File_Name_Objects));
         ObjectOutputStream os = new ObjectOutputStream(new FileOutputStream(file));
         os.writeObject(objs);
         os.close();
@@ -515,7 +515,7 @@ public class ShoveDrawView extends View {
 
     public void restoreData() throws IOException,ClassNotFoundException {
         coinsLeft = maxCoins; // this only gets used if no restore. NB: will get reduced by one if new game
-        File file = new File(getContext().getCacheDir(), "moveObjs");
+        File file = new File(getContext().getCacheDir(), getContext().getString(R.string.File_Name_Objects));
         ObjectInputStream is = new ObjectInputStream(new FileInputStream(file));
         objs = (ArrayList) is.readObject();
         int lastCoinPlayed = objs.size()-1;
@@ -540,9 +540,9 @@ public class ShoveDrawView extends View {
 
         // store names and AI settings from prefs
         player[0].name=preferences.getString("pref_player1", "Player 1");
-        player[0].AI=preferences.getBoolean("pref_player1bot", false);
+        player[0].accuracy=preferences.getInt("pref_player1bot", 0);
         player[1].name=preferences.getString("pref_player2", "Player 2");
-        player[1].AI=preferences.getBoolean("pref_player2bot", false);
+        player[1].accuracy=preferences.getInt("pref_player2bot", 0);
 
         sounds = preferences.getBoolean("pref_sounds", true);
         bounds = preferences.getBoolean("pref_bounds", true);
@@ -572,8 +572,8 @@ public class ShoveDrawView extends View {
         //Also if bedScore changes then scoring might fail - best to restart in these cases - or all cases?
         //TODO does exit reset lose all calculated zones? - should save these
         if (player[0].score.length!=beds+2) {
-            player[0]=new Player(player[0].name, player[0].AI, player[0].accuracy);
-            player[1]=new Player(player[1].name, player[1].AI, player[1].accuracy);
+            player[0]=new Player(player[0].name, player[0].accuracy);
+            player[1]=new Player(player[1].name, player[1].accuracy);
         }
 
     }
@@ -582,7 +582,7 @@ public class ShoveDrawView extends View {
     public class Player implements Serializable{
         public String name = "Player";
         public boolean AI = false;
-        public int accuracy = 20; //This is percentage offset each direction 10 is fairly inaccurate 30 is pretty good 100 is sharp
+        public int accuracy = 0; //This is percentage offset each direction 10 is fairly inaccurate 30 is pretty good 100 is sharp
         public int[][] aim = new int[beds+2][2]; //[bed - bed zero is the fling zone, bed+1 is the outzone][min|max]
         public int[][] score = new int[beds+2][2]; //[bed - bed zero is for point score and final bed is for tracking completed][actual|potential]
 
@@ -594,10 +594,10 @@ public class ShoveDrawView extends View {
             Toast.makeText(getContext(), "Taking Aim "+aim.length+" "+beds+" "+screenH/10, Toast.LENGTH_LONG).show();
         }
 
-        public Player(String name, boolean AI, int accuracy) {
+        public Player(String name, int accuracy) {
             this();
             this.name = name;
-            this.AI = AI;
+            this.AI = accuracy>0;
             this.accuracy = accuracy;
         }
     }

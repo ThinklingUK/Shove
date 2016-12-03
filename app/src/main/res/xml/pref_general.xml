@@ -16,14 +16,16 @@
                 android:singleLine="true"
                 android:maxLines="1" />
 
-        <SwitchPreference
+        <uk.thinkling.shove.ListPreference
             android:key="pref_player1bot"
             android:title="Player 1"
-            android:summaryOff="Human"
-            android:summaryOn="AI"
-            android:switchTextOff="Human"
-            android:switchTextOn="AI"
-            android:defaultValue="false" />
+            android:defaultValue="0"
+            android:summary="%s"
+            android:entries="@array/pref_AI_list_titles"
+            android:entryValues="@array/pref_AI_list_values"
+            android:negativeButtonText="@null"
+            android:positiveButtonText="@null" />
+
 
         <uk.thinkling.shove.EditTextPreference
                 android:key="pref_player2"
@@ -36,14 +38,16 @@
                 android:singleLine="true"
                 android:maxLines="1" />
 
-        <SwitchPreference
+        <uk.thinkling.shove.ListPreference
             android:key="pref_player2bot"
-            android:title="PLayer 2"
-            android:summaryOff="Human"
-            android:summaryOn="AI"
-            android:switchTextOff="Human"
-            android:switchTextOn="AI"
-            android:defaultValue="false" />
+            android:title="Player 2"
+            android:defaultValue="0"
+            android:summary="%s"
+            android:entries="@array/pref_AI_list_titles"
+            android:entryValues="@array/pref_AI_list_values"
+            android:negativeButtonText="@null"
+            android:positiveButtonText="@null" />
+
     </PreferenceCategory>
     <PreferenceCategory
             android:title="Game Settings"

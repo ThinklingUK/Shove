@@ -12,6 +12,7 @@
         <p>Coins that strike the sides will <b>%4$s off</b> the edge.</p>
         <p>Coins crossing the side rails will <b>%5$s valid</b> for scoring.</p>
         ]]>
-</string>
+    </string>
     <string name="File_Name_Players">Scores</string>
+    <string name="File_Name_Objects">moveObjs</string>
 </resources>
