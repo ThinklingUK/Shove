@@ -51,7 +51,7 @@
 
         <CheckBoxPreference
                 android:key="pref_pointscore"
-                android:title="Shanghai (Scoring)"
+                android:title="Shanghai / Portsmouth (Scoring)"
                 android:summary="Scoring version - no limit to beds"
                 android:enabled="false"
                 android:defaultValue="false" />

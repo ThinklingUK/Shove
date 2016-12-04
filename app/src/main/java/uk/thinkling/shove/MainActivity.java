@@ -72,20 +72,12 @@ public class MainActivity extends Activity {
     protected void onPause() {
         super.onPause();
 
-        // Save application preferences data - settings should also be stored here
-/*        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putInt("hiscore", 99);
-        editor.putString("test", "preferences OK");
-        editor.commit();*/
         //stop the callback loop
         mHandler.removeCallbacks(mRunnable);
 
         try {
             myDrawView.saveData();
-            //Toast.makeText(getBaseContext(), "onPause - OK", Toast.LENGTH_SHORT).show();
         } catch (IOException ex) {
-            //Toast.makeText(getBaseContext(), "onPause - Fail", Toast.LENGTH_SHORT).show();
             //Log.e("onPause", ex.toString());
         }
 
@@ -114,21 +106,6 @@ public class MainActivity extends Activity {
     @Override
     protected void onStart() {
         super.onStart();
-        //all of this is in the getsizechange of drawView
-/*        Toast.makeText(getBaseContext(), "onStart", Toast.LENGTH_SHORT).show();
-        String test ="";
-        try {
-            //Load lists from file or set defaults for some reason, | is not good delimiter
-            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-            int hiscore = preferences.getInt("hiscore", 0);
-            test = preferences.getString("test", "prefs not found");
-
-        } catch (Exception e){
-            Log.d("LOADING LIST",  e.getMessage());
-        }
-        Toast.makeText(this, test, Toast.LENGTH_SHORT).show();*/
-
-
     }
 
     // Sound pool builder - TODO should converge with constructor version
@@ -172,41 +149,6 @@ public class MainActivity extends Activity {
         return true;
     }
 
-/*
-    @Override
-    //handle the clicks on the top bar menu options
-        public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-
-        switch (item.getItemId()){
-
-            case R.id.action_settings:
-                Intent intent = new Intent(this, SettingsActivity.class);
-                startActivity(intent); //TODO should really startActivitywithResult and capture here ...
-                return true;
-
-            case R.id.action_clearcache:
-                File file = new File(getCacheDir(), "moveObjs");
-                if (file.exists()) file.delete();
-                file = new File(getCacheDir(), "Scores");
-                if (file.exists()) file.delete();
-                return true;
-
-            case R.id.action_start:
-                parent.removeView(myDrawView);
-                myDrawView = new ShoveDrawView(this , null);
-                break;
-
-            default:
-
-        }
-
-        parent.addView(myDrawView, index);
-        return super.onOptionsItemSelected(item);
-    }
-*/
 
     // method to attach to button onclick (via listener or XML)
     public void onPressButton(View v) {
@@ -235,9 +177,9 @@ public class MainActivity extends Activity {
             case R.id.button_newgame:
 
                 //clear cache
-                File file = new File(getCacheDir(), "moveObjs");
-                if (file.exists()) file.delete();
-                file = new File(getCacheDir(), "Scores");
+                File file = new File(getCacheDir(), getString(R.string.File_Name_Objects));
+                if (file.exists()) file.delete();  //TODO can this ERR?
+                file = new File(getCacheDir(), getString(R.string.File_Name_Players));
                 if (file.exists()) file.delete();
 
                 // totally new game
