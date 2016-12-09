@@ -17,7 +17,7 @@
                 android:maxLines="1" />
 
         <uk.thinkling.shove.ListPreference
-            android:key="pref_player1bot"
+            android:key="pref_player1AI"
             android:title="Player 1"
             android:defaultValue="0"
             android:summary="%s"
@@ -39,7 +39,7 @@
                 android:maxLines="1" />
 
         <uk.thinkling.shove.ListPreference
-            android:key="pref_player2bot"
+            android:key="pref_player2AI"
             android:title="Player 2"
             android:defaultValue="0"
             android:summary="%s"
