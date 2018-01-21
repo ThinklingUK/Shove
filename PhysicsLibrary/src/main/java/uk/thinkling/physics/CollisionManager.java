@@ -363,8 +363,9 @@ public class  CollisionManager {
 
             double threshold = 0.5; //NB: larger than 0.5
             // if below movement threshold, begin sleep countdown. This can be reset by movement.
-            if (obja.xSpeed > threshold || obja.xSpeed < -threshold || obja.ySpeed > threshold+gravity || obja.ySpeed < -threshold) obja.movestate=5; //TODO const
-            if (objb.xSpeed > threshold || objb.xSpeed < -threshold || objb.ySpeed > threshold || objb.ySpeed < -threshold) objb.movestate=5; //TODO const
+            // this is now within applyFrictionGravity
+            //if (obja.xSpeed > threshold || obja.xSpeed < -threshold || obja.ySpeed > threshold+gravity || obja.ySpeed < -threshold) obja.movestate=5; //TODO why is gravity in this one?
+            //if (objb.xSpeed > threshold || objb.xSpeed < -threshold || objb.ySpeed > threshold || objb.ySpeed < -threshold) objb.movestate=5; //TODO const
 
 /*
             First get the surface tangent from the surface normal: t = (ny, -nx)

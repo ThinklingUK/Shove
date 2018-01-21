@@ -154,15 +154,17 @@ public class MoveObj implements Serializable {
 
     public void applyFrictionGravity(double friction, double gravity, double rFriction, int screenW, int screenH) {
 
-        double threshold = 0.5; //NB: larger than 0.5
+        double vTreshold = 0.5; // NB: This is the minimum speed - below which we start countdown to immobility - larger than 0.5
+        double rThreshold = 0.05; // NB: min rotational speed
         // if below movement threshold, begin sleep countdown. This can be reset by movement.
-        if (rSpeed < threshold && rSpeed > -threshold && xSpeed < threshold && xSpeed > -threshold && ySpeed < threshold+gravity && ySpeed > -threshold) movestate--; else movestate=5; //TODO const
+        if (rSpeed < rThreshold && rSpeed > -rThreshold && xSpeed < vTreshold && xSpeed > -vTreshold && ySpeed < vTreshold+gravity && ySpeed > -vTreshold) movestate--; else movestate=5; //TODO const
 
-        if (movestate>0) {
+        if (movestate <= 0) rSpeed = xSpeed = ySpeed = 0; //set all to zero
+        else {
             // slow the object based on friction and accelerate down based on gravity EFF precalc this also ignore if no friction
             xSpeed *= 1 - friction;
             ySpeed *= 1 - friction;
-            rSpeed *= 1 - friction;
+            rSpeed *= 1 - rFriction; //TODO should use rFriction
 
             //TODO, should stop applying gravity to objects that have stopped moving. (ie. resting on something)
             if (type != 10) ySpeed += gravity; //don't apply gravity to type 10
@@ -170,9 +172,9 @@ public class MoveObj implements Serializable {
             // TODO this sleep factor should be a const
             // NB: TODO gravity may be cancelled out before it can build esp if friction and gravity used and grav < sleep factor
 
-            // also zero speed if out of bounds
+            // also zero speed if out of bounds by setting movestate to zero immediately
             if (x < -radius || x > screenW + radius || y < -radius || y > screenH + radius) movestate = 0;
-        } else xSpeed=ySpeed=0;
+        }
     }
 
     public void move(double time) {

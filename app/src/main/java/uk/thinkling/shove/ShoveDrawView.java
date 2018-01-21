@@ -168,7 +168,7 @@ public class ShoveDrawView extends View {
             if (inPlay.state == 1 && e2.getY()>startZone) {
                 inPlay.xSpeed = velocityX / 25;
                 inPlay.ySpeed = velocityY / 25;
-                inPlay.rSpeed = Math.random()*20-10;
+                inPlay.rSpeed = Math.random()*40-20;
             }
             return true;
         }
@@ -321,7 +321,7 @@ public class ShoveDrawView extends View {
             currSpeed = Math.min(player[playerNum].aim[beds+1][1],Math.max(player[playerNum].aim[0][0],(int) (Math.random()*(Smax-Smin+2*Soffset)+Smin-Soffset)));
             inPlay.xSpeed = Math.random()*screenW/100-screenW/200;
             inPlay.ySpeed = -currSpeed; //TODO - check if screen size impacts this, or friction
-            inPlay.rSpeed = Math.random()*20-10; //randomise rotational
+            inPlay.rSpeed = Math.random()*40-20; //randomise rotational TOTO consts
            // DEBUG Toast.makeText(getContext(), "min " + Smin+" max "+Smax + " = "+currSpeed, Toast.LENGTH_LONG).show();
         }
 
