@@ -203,7 +203,7 @@ public class ShoveDrawView extends View {
         //Draw the sidelines and Beds (NB: the screen has a 2bed endzone, 9 full beds, a 1 bed exclusion and 3 bed fling zone)
         for (int f = 0; f <= beds; f++) {
             canvas.drawLine(0, f * bedH + 2 * bedH, screenW, f * bedH + 2 * bedH, linepaint); //draw each horizontal
-            canvas.drawText("" + player[playerNum].aim[beds-f][0]+":" + player[playerNum].aim[beds-f][1], 20, f * bedH + 2.6f * bedH, linepaint); // display the aim
+            //canvas.drawText("" + player[playerNum].aim[beds-f][0]+":" + player[playerNum].aim[beds-f][1], 20, f * bedH + 2.6f * bedH, linepaint); // display the aim
 
             if (f < beds) {
                 canvas.drawText("" + (beds - f), screenW / 2, f * bedH + 2.6f * bedH, linepaint); // display the bed number
@@ -213,7 +213,7 @@ public class ShoveDrawView extends View {
                 drawScore(canvas, player[1].score[beds - f], screenW - sidebar, f * bedH + 2 * bedH);
             }
         }
-        canvas.drawText("" + player[playerNum].aim[beds+1][0]+":" + player[playerNum].aim[beds+1][1], 20, 1.6f * bedH, linepaint); // display the aim
+        //canvas.drawText("" + player[playerNum].aim[beds+1][0]+":" + player[playerNum].aim[beds+1][1], 20, 1.6f * bedH, linepaint); // display the aim
 
 
         //draw the 2 sidebars
@@ -540,9 +540,11 @@ public class ShoveDrawView extends View {
 
         // store names and AI settings from prefs
         player[0].name=preferences.getString("pref_player1", "Player 1");
-        player[0].accuracy=preferences.getInt("pref_player1bot", 0);
+        player[0].accuracy=Integer.parseInt(preferences.getString("pref_player1AI", "0"));
+        player[0].AI=player[0].accuracy>0; //TODO should be in setter
         player[1].name=preferences.getString("pref_player2", "Player 2");
-        player[1].accuracy=preferences.getInt("pref_player2bot", 0);
+        player[1].accuracy=Integer.parseInt(preferences.getString("pref_player2AI", "0"));
+        player[1].AI=player[1].accuracy>0; //TODO should be in setter
 
         sounds = preferences.getBoolean("pref_sounds", true);
         bounds = preferences.getBoolean("pref_bounds", true);
@@ -591,7 +593,7 @@ public class ShoveDrawView extends View {
                 aim[i][0]=0;
                 aim[i][1]=screenH/10; //TODO factor should be affected by friction
             }
-            Toast.makeText(getContext(), "Taking Aim "+aim.length+" "+beds+" "+screenH/10, Toast.LENGTH_LONG).show();
+            //Toast.makeText(getContext(), "Taking Aim "+aim.length+" "+beds+" "+screenH/10, Toast.LENGTH_LONG).show();
         }
 
         public Player(String name, int accuracy) {
