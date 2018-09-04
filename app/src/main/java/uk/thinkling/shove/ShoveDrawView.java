@@ -26,7 +26,7 @@ import uk.thinkling.physics.CollisionManager;
 
 /**
  * Shove
- * Created by David & Ellison on 11/04/2015.
+ * Created by David Linsley & Ellison on 11/04/2015.
  */
 public class ShoveDrawView extends View {
 
