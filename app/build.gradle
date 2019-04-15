@@ -2,7 +2,6 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 24
-    buildToolsVersion '27.0.3'
     defaultConfig {
         applicationId "uk.thinkling.shove"
         minSdkVersion 15
@@ -25,9 +24,10 @@ android {
 }
 
 dependencies {
-    implementation 'com.google.android.gms:play-services-auth:11.0.4'
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'com.android.support:support-v4:22.2.0'
-    implementation 'com.android.support:appcompat-v7:25.2.0'
     implementation project(':PhysicsLibrary')
+    implementation 'com.google.android.gms:play-services-auth:16.0.0'
+    implementation 'com.google.android.gms:play-services-games:15.0.1'
+    implementation 'com.android.support:support-v4:24.2.0'
+    implementation 'com.android.support:appcompat-v7:24.2.0'
 }

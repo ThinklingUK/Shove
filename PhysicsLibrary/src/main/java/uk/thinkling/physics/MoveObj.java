@@ -27,7 +27,7 @@ public class MoveObj implements Serializable {
     public int radius;
     public transient int movingStreamID = 0;
     public double mass;
-    public int state = 1;
+    public int state = STATE_PENDING;
     public int movestate = 5;
     public boolean wallBounce = true;
     public boolean hitSide = false;
@@ -38,8 +38,14 @@ public class MoveObj implements Serializable {
     int defense; // defence used in collisions
     transient Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     transient static Paint stroke = new Paint(Paint.ANTI_ALIAS_FLAG);
-
     static Random rnd = new Random();
+
+    // CONSTS
+    static public final int STATE_VOID = -1;
+    static public final int STATE_PLAYED = 0;
+    static public final int STATE_PENDING = 1;
+
+
 
     public MoveObj(int type, int radius, float x, float y, double xSpeed, double ySpeed) {
         this.type = type;

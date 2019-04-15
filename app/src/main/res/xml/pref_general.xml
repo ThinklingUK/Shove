@@ -55,8 +55,8 @@
 
         <SwitchPreference
                 android:key="pref_rebounds"
-                android:summaryOn="Can bounce off walls"
-                android:summaryOff="No bouncing off walls"
+                android:summaryOn="Can bounce off side walls"
+                android:summaryOff="No sidewalls"
                 android:switchTextOff="OFF"
                 android:switchTextOn="ON"
                 android:title="Rebounds"

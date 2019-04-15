@@ -17,6 +17,8 @@ import android.util.Log;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Iterator;
+
 
 import uk.thinkling.physics.MoveObj;
 import uk.thinkling.physics.CollisionManager;
@@ -47,7 +49,7 @@ public class ShoveDrawView extends View {
     int playerNum = 0;
     int currSpeed=0;
     Player[] player = new Player[2];
-    boolean sounds=true, bounds=true, rebounds=true, highlight=true;
+    boolean sounds=true, bounds=true, rebounds=true, highlight=true, progressive=false;
 
     String dynamicInstructions ="";
 
@@ -70,7 +72,7 @@ public class ShoveDrawView extends View {
     public ShoveDrawView(Context context, AttributeSet attrs) {
         super(context, attrs);
         //if (!isInEditMode()) ;
-        parent = (MainActivity) this.getContext(); //TODO - remove all references to parent to improve editor preview
+        parent = (MainActivity) this.getContext(); //TODO - remove all references to parent. NB: will improve editor preview
         gdc = new GestureDetectorCompat(parent, new MyGestureListener()); // create the gesture detector
        // for (int f = 0; f <= score.length; f++) score[0][f][0] = score[0][f][1] = score[1][f][0] = score[1][f][1] = 0; /* set scores to zero */
     }
@@ -82,7 +84,7 @@ public class ShoveDrawView extends View {
         screenW = w;
         screenH = h;
         sidebar=screenW/10;
-        float strokeSize = (w/280);  // TODO this is driven by width so set in onSizeChanged
+        float strokeSize = (w/280);  // Stroke size is defined by width
         shadowpaint.setARGB(64,0,0,0);
         linepaint.setColor(Color.parseColor("#CD7F32"));
         linepaint.setStyle(Paint.Style.STROKE);
@@ -138,7 +140,7 @@ public class ShoveDrawView extends View {
         @Override
         public boolean onDown(MotionEvent e) {
             //add a state tracker - could also require hit on a coin at start
-            if (inPlay.state == 1 && e.getY()> startZone) {
+            if (inPlay.state == MoveObj.STATE_PENDING && e.getY()> startZone) {
                 inPlay.xSpeed = inPlay.ySpeed = 0;
                 inPlay.x = e.getX();
                 inPlay.y = e.getY();
@@ -149,7 +151,7 @@ public class ShoveDrawView extends View {
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
             // effectively a Drag detector - although would need to check that we have hit a ball first in onDown
-            if (inPlay.state == 1) {
+            if (inPlay.state == MoveObj.STATE_PENDING) {
                 if (e2.getY() > startZone) {
                     inPlay.x = e2.getX();
                     inPlay.y = e2.getY();
@@ -165,7 +167,7 @@ public class ShoveDrawView extends View {
 
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-            if (inPlay.state == 1 && e2.getY()>startZone) {
+            if (inPlay.state == MoveObj.STATE_PENDING && e2.getY()>startZone) {
                 inPlay.xSpeed = velocityX / 25;
                 inPlay.ySpeed = velocityY / 25;
                 inPlay.rSpeed = Math.random()*20-10;
@@ -188,7 +190,7 @@ public class ShoveDrawView extends View {
         if (coinsLeft >1)
             parent.HighScoreText.setText(player[playerNum].name + " - " + coinsLeft+" coins");
         else
-            parent.HighScoreText.setText(player[playerNum].name + " - Last coin"); //TODO const etc
+            parent.HighScoreText.setText(player[playerNum].name + " - Last coin"); //TODO make string literal etc
 
         //Portsmouth scores
         // parent.TimeLeftText.setText("P1: "+ score[0][0]);
@@ -230,10 +232,11 @@ public class ShoveDrawView extends View {
             matrix.postTranslate((float) obj.x, (float) obj.y);
             canvas.drawBitmap(bmp, matrix, bmppaint);
 
+            // If Highlighting is enabled, show scoring highlight unless voided
             if (highlight) {
-                if (obj.state < 0) obj.draw(canvas); //TODO - move bitmap and matrix into moveObj OUTLINE IF VOIDED
+                if (obj.state == MoveObj.STATE_VOID) obj.draw(canvas); //TODO - move bitmap and matrix into moveObj OUTLINE IF VOIDED
                 else
-                    //if the coin is within a bed, highlight it. TODO - add a temporary score to the player, or only when motion stopped
+                    //if the coin is within a bed, highlight it.
                     if (between(getBed((int) obj.y), 1, beds))
                         canvas.drawCircle((float) obj.x, (float) obj.y, coinR, outlinepaint);
             }
@@ -250,7 +253,7 @@ public class ShoveDrawView extends View {
         // Collision manager also moves the objects.
         collider.collide(objs);
         for (CollisionManager.CollisionRec coll : collider.collisions) {
-            //TODO set pitch based on size of the objects.
+            //TODO set sound pitch based on size of the objects.
             float volume = Math.min((float) coll.impactV / 100, 1); //set the volume based on impact speed
             if (coll.objb == null) {  //if a wall collision
                 // if a wall collision, play sound and may void the coin
@@ -268,12 +271,12 @@ public class ShoveDrawView extends View {
         for (MoveObj obj : objs) {
 
             //if outside the sidebars and boundary rules are on, then void the coin if already in playzone
-            if (bounds && obj.state==0 && (obj.x-coinR<sidebar || obj.x+coinR>screenW-sidebar)) obj.state=-1;
+            if (bounds && obj.state==MoveObj.STATE_PLAYED && (obj.x-coinR<sidebar || obj.x+coinR>screenW-sidebar)) obj.state=-1;
 
             if (obj.xSpeed != 0 || obj.ySpeed != 0) {
                 motion = true;
                 // if there is a streamID then adjust volume else start movement sound
-                float volume = Math.min( (float)Math.sqrt(obj.xSpeed*obj.xSpeed+obj.ySpeed*obj.ySpeed) / 50, 1); //set the volume based on impact speed TODO const or calc
+                float volume = Math.min( (float)Math.sqrt(obj.xSpeed*obj.xSpeed+obj.ySpeed*obj.ySpeed) / 50, 1); //set the volume based on impact speed EFF const or calc
 
                 if (obj.movingStreamID >0) {
                     parent.player.setVolume(obj.movingStreamID,volume,volume);
@@ -291,11 +294,10 @@ public class ShoveDrawView extends View {
             }
         }
 
-        // if AI, and there is a ball available, then fire it.
-        // TODO - could place coin away from scoring coins
-        // TODO - could act tactically - aim for furthest beds with lowest score.
+        // if AI, and there is a coin available, then fire it.
+        // OPT - could place coin away from scoring coins
 
-        if (inPlay != null && inPlay.state == 1 && !motion && player[playerNum].AI) {
+        if (inPlay != null && inPlay.state == MoveObj.STATE_PENDING && !motion && player[playerNum].AI) {
             motion=true;
             inPlay.state = 0;
             int Smin=player[playerNum].aim[0][0];
@@ -303,6 +305,7 @@ public class ShoveDrawView extends View {
             int Soffset = (Smax-Smin)/player[playerNum].accuracy; // how much to potentially miss by percentage of range
 
             // Which bed to aim for? if I know how to hit the bed? the lowest potential score? furthest away? pick one at random?
+            // act tactically - aim for furthest beds with lowest score.
             int lowestPotential = 2;
             int target = 0;
             for (int f = 1; f <= beds; f++) {
@@ -327,18 +330,18 @@ public class ShoveDrawView extends View {
 
 
         // if ball in play exits the start zone, then it cannot be touched
-        if (inPlay != null && inPlay.state == 1 && inPlay.y < startZone) inPlay.state = 0;
+        if (inPlay != null && inPlay.state == MoveObj.STATE_PENDING && inPlay.y < startZone) inPlay.state = MoveObj.STATE_PLAYED;
 
         // if motion stops, and still behind start zone,
-        if (inPlay != null && !motion && inPlay.state != 1 && inPlay.y>startZone) { // not even reached first line
-            inPlay.state=1; //put back into flick state
+        if (inPlay != null && !motion && inPlay.state != MoveObj.STATE_PENDING && inPlay.y>startZone) { // not even reached first line
+            inPlay.state=MoveObj.STATE_PENDING; //put back into flick state
             inPlay.y=screenH - bedH; //move back to start
             // if no collisions and this is an AI, if this is a faster minimum speed, update minimum speed.
             if (player[playerNum].AI && !inPlay.hitObj && !inPlay.hitTop ) player[playerNum].aim[0][0] = Math.max(player[playerNum].aim[0][0],currSpeed);
         }
 
         //if there is a ball in play and all motion stops, calc intermediate or final scores and play new ball if final
-        if (inPlay != null && !motion && inPlay.state != 1) {
+        if (inPlay != null && !motion && inPlay.state != MoveObj.STATE_PENDING) {
             coinsLeft--;
 
             // if an AI player, get bed of current coin and set speed for a score or over and under-run
@@ -378,21 +381,19 @@ public class ShoveDrawView extends View {
                 //if the coin is within a bed, score it
 
                 int bed = getBed((int) obj.y);
-                if (between(bed, 1, beds) && obj.state >= 0) { //don't include coin if voided. (ie. state is -1
+                if (between(bed, 1, beds) && obj.state != MoveObj.STATE_VOID) { //don't include coin if voided. (ie. state is -1
                     player[playerNum].score[0][1] += bed; //add the score onto player potential total // used in portsmouth rules
                     // if already three, increment opponent up to three, else increment player up to three
                     if (!addPoint(playerNum, bed, true)) addPoint(1 - playerNum, bed, false);
                     if (potential(player[playerNum].score[beds + 1]) >= beds) winner = playerNum;
-                    //THIS IS A WIN !!!!! reset all could even break the for loop!
-                    // TODO would be good to have a "scoring" state where the coins and scores are animated
+                    // THIS IS A WIN !!!!! reset all could even break the for loop!
                 }
             }
 
             if (coinsLeft <= 0) {
                 // all coins used up - so end of turn - although in progressive, some could be returned
-                // TODO - if progressive (Oxford) then return some coins
 
-                // potential scores become real scores.
+                // potential scores become real scores. Iterate through each bed.
                 for (int f = 0; f < player[0].score.length; f++) {
                     player[0].score[f][0] = potential(player[0].score[f]);
                     player[1].score[f][0] = potential(player[1].score[f]);
@@ -400,13 +401,40 @@ public class ShoveDrawView extends View {
                     player[1].score[f][1] = 0; /* set potential scores to zero TODO - const would be clearer */
                 }
 
-                playerNum = 1 - playerNum;
-                coinsLeft = maxCoins;
-                objs.clear();
+                /*
+                if (progressive) {// if progressive game version (also Oxfordshire rules or Follow-on) then scoring coins are returned
+                    for (MoveObj obj : objs) {
+                        if (between(getBed((int) obj.y), 1, beds) && obj.state != MoveObj.STATE_VOID) { //don't include coin if voided. TODO should also exclude AWAY scores , ie. if point scored for opponent
+                            objs.remove(obj);
+                            coinsLeft++;
+                        }
+                    }
+                }
+*/
+                //NB: as removing objects from list, must use iterator rather than objs.remove(obj)
+                if (progressive) { // if progressive game version (also Oxfordshire rules or Follow-on) then scoring coins are returned
+                    Iterator itr = objs.iterator();
+                    while (itr.hasNext()) {
+                        MoveObj obj = (MoveObj) itr.next();
+                        if (between(getBed((int) obj.y), 1, beds) && obj.state != MoveObj.STATE_VOID) { //don't include coin if voided. TODO should also exclude AWAY scores , ie. if point scored for opponent
+                            itr.remove();
+                            coinsLeft++;
+                        }
+                    }
+                }
+
+
+                //if still no coins left (even after progressive rules applied) then next player
+                if (coinsLeft <= 0) {
+                    playerNum = 1 - playerNum;
+                    coinsLeft = maxCoins;
+                    objs.clear();
+                }
             }
 
 
             if (winner >= 0) {
+                // TODO would be good to have a "scoring" state where the coins and scores are animated
                 Toast.makeText(getContext(), "Won by " + player[winner].name, Toast.LENGTH_LONG).show();
 
                 /* set scores to zero */
@@ -550,6 +578,7 @@ public class ShoveDrawView extends View {
         bounds = preferences.getBoolean("pref_bounds", true);
         rebounds = preferences.getBoolean("pref_rebounds", true);
         highlight = preferences.getBoolean("pref_highlight", true);
+        progressive = preferences.getBoolean("pref_progressive", false);
 
 
         maxCoins = Integer.parseInt(preferences.getString("pref_maxcoins", "5"));
@@ -584,7 +613,7 @@ public class ShoveDrawView extends View {
     public class Player implements Serializable{
         public String name = "Player";
         public boolean AI = false;
-        public int accuracy = 0; //This is percentage offset each direction 10 is fairly inaccurate 30 is pretty good 100 is sharp
+        public int accuracy = 0; //For AI, this is percentage offset each direction 10 is fairly inaccurate 30 is pretty good 100 is sharp
         public int[][] aim = new int[beds+2][2]; //[bed - bed zero is the fling zone, bed+1 is the outzone][min|max]
         public int[][] score = new int[beds+2][2]; //[bed - bed zero is for point score and final bed is for tracking completed][actual|potential]
 
