@@ -18,6 +18,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Iterator;
+import java.text.MessageFormat;
 
 
 import uk.thinkling.physics.MoveObj;
@@ -546,7 +547,7 @@ public class ShoveDrawView extends View {
         is = new ObjectInputStream(new FileInputStream(file));
         player = (Player[]) is.readObject();
         Toast.makeText(getContext(), "Loading Player Data", Toast.LENGTH_LONG).show();
-        //TODO New game wipes the AI aim data
+        //OPT New game wipes the AI aim data - should this be saved?
 
     }
 
@@ -587,7 +588,8 @@ public class ShoveDrawView extends View {
         bmp = Bitmap.createScaledBitmap(rawbmp, coinR * 2, coinR * 2, true);
         bmppaint.setFilterBitmap(true);
 
-        dynamicInstructions = String.format(getContext().getString(R.string.str_instructions), beds, maxCoins, bedScore, rebounds?"bounce":"fall", bounds?"not be":"be");
+        //using MessageFormat for conditional text in resources
+        dynamicInstructions = MessageFormat.format(getContext().getString(R.string.msg_instructions), beds, maxCoins, bedScore, rebounds?0:1, bounds?0:1, progressive?0:1);
 
         //Also if bedScore changes then scoring might fail - best to restart in these cases - or all cases?
         //TODO does exit reset lose all calculated zones? - should save these
