@@ -219,14 +219,14 @@ public class MainActivity extends Activity {
         } else {
             // if instructions shown , offer close dialog
             AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
-            alertDialogBuilder.setTitle("Exit ?"); //TODO add app name?
-            alertDialogBuilder.setMessage("Click yes to exit!").setCancelable(false)
-                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            alertDialogBuilder.setTitle(R.string.exit_prompt); //TODO add app name?
+            alertDialogBuilder.setMessage(R.string.exit_message).setCancelable(false)
+                    .setPositiveButton(R.string.BtnText_Positive, new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int id) {
                                     finish();
                                 }
                             })
-                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    .setNegativeButton(R.string.BtnText_Negative, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
                             dialog.cancel();
                         }

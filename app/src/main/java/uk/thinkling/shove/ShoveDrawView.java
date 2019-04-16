@@ -40,7 +40,7 @@ public class ShoveDrawView extends View {
     uk.thinkling.physics.CollisionManager collider;
 
     int screenW, screenH, bedH, sidebar, coinR, startZone;
-    int shadoff = 4; //shadow offset TODO - factor of coinR
+    int shadoff = 4; //shadow offset OPT - make a factor of coinR
     final double gravity = 0, friction = 0.07;
     final float coinRatio = 0.33f; // bed to radius friction (0.33 is 2 thirds,
     final float bedSpace=0.8f; // NB: includes end space and free bed before first line.
@@ -63,7 +63,9 @@ public class ShoveDrawView extends View {
 
     static Bitmap rawbmp, bmp; // bitmap for the coin
     Matrix matrix = new Matrix(); //matrix for bitmap
-
+    final LightingColorFilter cfLighter = new LightingColorFilter(0x00FFFFFF, 0x00222222); //(mul, add)
+    final LightingColorFilter cfDarker = new LightingColorFilter(0x00808080, 0x00222222); //(mul, add)
+    final LightingColorFilter cfNormal = new LightingColorFilter(0x00FFFFFF, 0x00000000); //(mul, add)
 
     /*VARIABLES*/
 
@@ -187,12 +189,10 @@ public class ShoveDrawView extends View {
 
 
         /* Scores Text */
-        if (coinsLeft >1)
-            parent.HighScoreText.setText(player[playerNum].name + " - " + coinsLeft+" coins");
-        else
-            parent.HighScoreText.setText(player[playerNum].name + " - Last coin"); //TODO make string literal etc
+        //uses make string literal resource (plurals) etc EFF preload getResources
+        parent.HighScoreText.setText(getResources().getQuantityString(R.plurals.player_coins, coinsLeft, player[playerNum].name, coinsLeft));
 
-        //Portsmouth scores
+        // Portsmouth scores
         // parent.TimeLeftText.setText("P1: "+ score[0][0]);
         // parent.ScoreText.setText("P2: "+ score[1][0]);
 
@@ -225,22 +225,20 @@ public class ShoveDrawView extends View {
 
 
         for (MoveObj obj : objs) {
-            canvas.drawCircle((float) obj.x+shadoff, (float) obj.y+shadoff, coinR, shadowpaint); //draw the shadow
+            canvas.drawCircle((float) obj.x+shadoff, (float) obj.y+shadoff, coinR, shadowpaint); //draw the shadow - could use shadow in paint, but less efficient
             matrix.reset();
-            matrix.postTranslate(-coinR, -coinR);
+            matrix.postTranslate(-coinR, -coinR); // set matrix midpoint to coin midpoint
             matrix.postRotate(obj.angle);
             matrix.postTranslate((float) obj.x, (float) obj.y);
-            canvas.drawBitmap(bmp, matrix, bmppaint);
 
             // If Highlighting is enabled, show scoring highlight unless voided
             if (highlight) {
-                if (obj.state == MoveObj.STATE_VOID) obj.draw(canvas); //TODO - move bitmap and matrix into moveObj OUTLINE IF VOIDED
-                else
-                    //if the coin is within a bed, highlight it.
-                    if (between(getBed((int) obj.y), 1, beds))
-                        canvas.drawCircle((float) obj.x, (float) obj.y, coinR, outlinepaint);
+                if (obj.state == MoveObj.STATE_VOID)  bmppaint.setColorFilter(cfDarker);
+                else if (between(getBed((int) obj.y), 1, beds)) bmppaint.setColorFilter(cfLighter);
+                else bmppaint.setColorFilter(cfNormal);
             }
 
+            canvas.drawBitmap(bmp, matrix, bmppaint); //TODO - move bitmap and matrix into moveObj to allow unique coins and a draw method
         }
     }
 
@@ -253,7 +251,7 @@ public class ShoveDrawView extends View {
         // Collision manager also moves the objects.
         collider.collide(objs);
         for (CollisionManager.CollisionRec coll : collider.collisions) {
-            //TODO set sound pitch based on size of the objects.
+            //OPT set sound pitch based on size of the objects.
             float volume = Math.min((float) coll.impactV / 100, 1); //set the volume based on impact speed
             if (coll.objb == null) {  //if a wall collision
                 // if a wall collision, play sound and may void the coin
@@ -320,10 +318,10 @@ public class ShoveDrawView extends View {
             Smin=player[playerNum].aim[target][0];
             Smax=player[playerNum].aim[target][1];
 
-            // Built in inaccuracy as %age of min and max
+            // Built in yspeed inaccuracy as %age of min and max OPT - check if screen size should impact this, or friction
             currSpeed = Math.min(player[playerNum].aim[beds+1][1],Math.max(player[playerNum].aim[0][0],(int) (Math.random()*(Smax-Smin+2*Soffset)+Smin-Soffset)));
             inPlay.xSpeed = Math.random()*screenW/100-screenW/200;
-            inPlay.ySpeed = -currSpeed; //TODO - check if screen size impacts this, or friction
+            inPlay.ySpeed = -currSpeed; // NB: speed -ve as the coin travels up the screen (zero at top)
             inPlay.rSpeed = Math.random()*20-10; //randomise rotational
            // DEBUG Toast.makeText(getContext(), "min " + Smin+" max "+Smax + " = "+currSpeed, Toast.LENGTH_LONG).show();
         }
@@ -375,11 +373,11 @@ public class ShoveDrawView extends View {
             }
 
             for (MoveObj obj : objs) {
-                obj.hitSide=false; //TODO take the opportunity to clear hit states
+                obj.hitSide=false; // take the opportunity to clear hit states
                 obj.hitTop=false;
                 obj.hitObj=false;
-                //if the coin is within a bed, score it
 
+                //if the coin is within a bed, score it EFF this could be set as a property during update
                 int bed = getBed((int) obj.y);
                 if (between(bed, 1, beds) && obj.state != MoveObj.STATE_VOID) { //don't include coin if voided. (ie. state is -1
                     player[playerNum].score[0][1] += bed; //add the score onto player potential total // used in portsmouth rules
@@ -401,16 +399,7 @@ public class ShoveDrawView extends View {
                     player[1].score[f][1] = 0; /* set potential scores to zero TODO - const would be clearer */
                 }
 
-                /*
-                if (progressive) {// if progressive game version (also Oxfordshire rules or Follow-on) then scoring coins are returned
-                    for (MoveObj obj : objs) {
-                        if (between(getBed((int) obj.y), 1, beds) && obj.state != MoveObj.STATE_VOID) { //don't include coin if voided. TODO should also exclude AWAY scores , ie. if point scored for opponent
-                            objs.remove(obj);
-                            coinsLeft++;
-                        }
-                    }
-                }
-*/
+
                 //NB: as removing objects from list, must use iterator rather than objs.remove(obj)
                 if (progressive) { // if progressive game version (also Oxfordshire rules or Follow-on) then scoring coins are returned
                     Iterator itr = objs.iterator();
@@ -421,6 +410,8 @@ public class ShoveDrawView extends View {
                             coinsLeft++;
                         }
                     }
+
+                    if (coinsLeft>0) Toast.makeText(getContext(), getResources().getQuantityString(R.plurals.player_followOn_coins, coinsLeft, player[playerNum].name, coinsLeft), Toast.LENGTH_LONG).show(); // NB used string format plural resource
                 }
 
 
@@ -434,8 +425,8 @@ public class ShoveDrawView extends View {
 
 
             if (winner >= 0) {
-                // TODO would be good to have a "scoring" state where the coins and scores are animated
-                Toast.makeText(getContext(), "Won by " + player[winner].name, Toast.LENGTH_LONG).show();
+                // TODO would be good to have a "winning" state where the coins and scores are animated
+                Toast.makeText(getContext(), getContext().getString(R.string.win_message,player[winner].name), Toast.LENGTH_LONG).show();
 
                 /* set scores to zero */
                 for (int f = 0; f < player[0].score.length; f++) {
@@ -469,7 +460,7 @@ public class ShoveDrawView extends View {
         // draw lines for the points with a horizontal when bed is filled
         // should perhaps be off the canvas and use other views to handle this.
 
-        int div = sidebar/bedScore; // this splits the verts EFF TODO precalc this plus the 0.9f and 1.1f multiple
+        int div = sidebar/bedScore; // this splits the verts EFF precalc this plus the 0.9f and 1.1f multiple also the bedH multiples
         // draw real scores first
         for (int i = 1; i <= score[0]; i++) {
             if (i == bedScore) //if this is a closed bed then use horizontal
@@ -485,11 +476,10 @@ public class ShoveDrawView extends View {
             else
                 c.drawLine(x + i * div*01.1f, y + bedH * 0.2f, x + i * div * 0.9f, y + bedH * 0.8f, linepaint);
         }
-
     }
 
     private int getBed(int pos){
-        if (pos>startZone) return -1; // not even reached first line TODO - this only looks at midpoint, should +coinR
+        if (pos>startZone) return -1; // not even reached first line EFF - this only looks at midpoint, should +coinR
         if ((pos+coinR)< 2*bedH) return 99; // in the endzone
         if ((pos-coinR)%bedH>coinR) return 0; //overlapping. so no score
         return (beds+2-((pos-coinR)/bedH));
@@ -563,7 +553,7 @@ public class ShoveDrawView extends View {
     // TODO - pull in the cache here - rather than the onStart()
     // This is called onResume - so after any view of settings or after a pause etc.
     public void loadPrefs() throws ClassCastException  {
-        //Load lists from file or set defaults TODO set defaults as consts
+        //Load lists from file or set defaults TODO set default strings as consts
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
 
         // store names and AI settings from prefs
@@ -585,6 +575,7 @@ public class ShoveDrawView extends View {
         bedScore = Integer.parseInt(preferences.getString("pref_bedscore", "3"));
         beds = Integer.parseInt(preferences.getString("pref_beds", "9"));
 
+        //TODO if #beds changed (ie. in prefs) and mismatch with saved data, reset score data
         //TODO should check to see if beds or bedScore previously set and have now changed. These changes should really trigger a restart
         //Number of beds then affects bed size, coin size etc.
 
@@ -596,8 +587,6 @@ public class ShoveDrawView extends View {
         bmp = Bitmap.createScaledBitmap(rawbmp, coinR * 2, coinR * 2, true);
         bmppaint.setFilterBitmap(true);
 
-        //TODO if #beds changed (ie. in prefs) and mismatch with saved data, reset score data
-        //TODO move to strings
         dynamicInstructions = String.format(getContext().getString(R.string.str_instructions), beds, maxCoins, bedScore, rebounds?"bounce":"fall", bounds?"not be":"be");
 
         //Also if bedScore changes then scoring might fail - best to restart in these cases - or all cases?
