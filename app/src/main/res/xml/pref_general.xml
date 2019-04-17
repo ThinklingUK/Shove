@@ -65,7 +65,7 @@
         <SwitchPreference
                 android:key="pref_bounds"
                 android:title="Boundaries"
-                android:summary="Allow coins to cross boundaries"
+                android:summary="Disallow coins that cross boundaries"
                 android:summaryOff="Boundary rules disabled"
                 android:summaryOn="Void coin if boundary crossed"
                 android:switchTextOff="OFF"
