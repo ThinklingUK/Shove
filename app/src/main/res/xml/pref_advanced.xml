@@ -37,16 +37,16 @@
     </PreferenceCategory>
 
     <PreferenceCategory
-            android:title="Variants (coming soon)"
+            android:title="Variants (under development)"
             android:key="pref_variant_settings"
-            android:enabled="false">
+            android:enabled="true">
 
 
         <CheckBoxPreference
                 android:key="pref_progressive"
-                android:title="Oxford (Progressive)"
+                android:title="Progressive (or Follow-on, Oxford, Newmarket)"
                 android:summary="Re-play any scoring coins"
-                android:enabled="false"
+                android:enabled="true"
                 android:defaultValue="false" />
 
         <CheckBoxPreference

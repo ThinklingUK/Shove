@@ -134,6 +134,7 @@ public class  CollisionManager {
 
     /// Calculate the time of impact of an object with bounding walls.
     /// Returns: Positive Time if a collision will occur, else negative (ie. has already occurred or no collision.
+    /// TODO enable top wall collision only - possibly use boundaries (next function)
     public double wallCollisionTime(MoveObj obj) {
 
         //detect earliest wall collision, ie. biggest dt (from y or X strike)

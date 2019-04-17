@@ -15,4 +15,18 @@
     </string>
     <string name="File_Name_Players">Scores</string>
     <string name="File_Name_Objects">moveObjs</string>
+    <string name="exit_prompt">Exit ?</string>
+    <string name="exit_message">Click yes to exit!</string>
+    <string name="BtnText_Positive">Yes</string>
+    <string name="BtnText_Negative">No</string>
+    <string name="win_message">%s wins the game</string>
+
+    <plurals name="player_coins">
+        <item quantity="one">%s - Last coin</item>
+        <item quantity="other">%s - %d coins</item>
+    </plurals>
+    <plurals name="player_followOn_coins">
+        <item quantity="one">%s gets one coin to replay</item>
+        <item quantity="other">%s gets %d coins to replay</item>
+    </plurals>
 </resources>
