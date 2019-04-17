@@ -22,6 +22,7 @@
     <string name="BtnText_Positive">Yes</string>
     <string name="BtnText_Negative">No</string>
     <string name="win_message">%s wins the game</string>
+    <string name="newgame_message">Well done %s! Starting the next game.</string>
 
     <plurals name="player_coins">
         <item quantity="one">%s - Last coin</item>
