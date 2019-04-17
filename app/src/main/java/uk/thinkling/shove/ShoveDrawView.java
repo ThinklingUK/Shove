@@ -11,6 +11,7 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
+import android.support.design.widget.Snackbar;
 import android.util.Log;
 
 
@@ -192,6 +193,8 @@ public class ShoveDrawView extends View {
         /* Scores Text */
         //uses make string literal resource (plurals) etc EFF preload getResources
         parent.HighScoreText.setText(getResources().getQuantityString(R.plurals.player_coins, coinsLeft, player[playerNum].name, coinsLeft));
+        // display the current player, OPT this is a bit basic - use icon on layout?
+        canvas.drawText("↓", playerNum==0?sidebar/3:screenW-2*sidebar/3,   1.6f * bedH, linepaint);
 
         // Portsmouth scores
         // parent.TimeLeftText.setText("P1: "+ score[0][0]);
@@ -452,6 +455,7 @@ public class ShoveDrawView extends View {
             inPlay.wallBounce=rebounds; //enable or disable wall bounce TODO - move into constructor
             objs.add(inPlay);
             if (sounds) parent.player.play(parent.placeSound,1,1,1,0,1);
+            Snackbar.make(parent.myDrawView, "Whoo, snackbar!", Snackbar.LENGTH_LONG).show();
         }
 
     }
@@ -589,7 +593,7 @@ public class ShoveDrawView extends View {
         bmppaint.setFilterBitmap(true);
 
         //using MessageFormat for conditional text in resources
-        dynamicInstructions = MessageFormat.format(getContext().getString(R.string.msg_instructions), beds, maxCoins, bedScore, rebounds?0:1, bounds?0:1, progressive?0:1);
+        dynamicInstructions = MessageFormat.format(getContext().getString(R.string.msg_instructions), beds, maxCoins, bedScore, rebounds?1:0, bounds?1:0, progressive?1:0);
 
         //Also if bedScore changes then scoring might fail - best to restart in these cases - or all cases?
         //TODO does exit reset lose all calculated zones? - should save these
