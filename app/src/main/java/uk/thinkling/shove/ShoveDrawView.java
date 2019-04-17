@@ -431,6 +431,7 @@ public class ShoveDrawView extends View {
             if (winner >= 0) {
                 // TODO would be good to have a "winning" state where the coins and scores are animated
                 Toast.makeText(getContext(), getContext().getString(R.string.win_message,player[winner].name), Toast.LENGTH_LONG).show();
+                Snackbar.make(this, getContext().getString(R.string.newgame_message,player[winner].name), Snackbar.LENGTH_LONG).show();
 
                 /* set scores to zero */
                 for (int f = 0; f < player[0].score.length; f++) {
@@ -455,7 +456,6 @@ public class ShoveDrawView extends View {
             inPlay.wallBounce=rebounds; //enable or disable wall bounce TODO - move into constructor
             objs.add(inPlay);
             if (sounds) parent.player.play(parent.placeSound,1,1,1,0,1);
-            Snackbar.make(parent.myDrawView, "Whoo, snackbar!", Snackbar.LENGTH_LONG).show();
         }
 
     }
