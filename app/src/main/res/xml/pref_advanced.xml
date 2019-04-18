@@ -5,7 +5,7 @@
 
         <uk.thinkling.shove.ListPreference
                 android:key="pref_beds"
-                android:title="Number of beds"
+                android:title="Number of beds (usually 9)"
                 android:defaultValue="9"
                 android:summary="%s"
                 android:entries="@array/pref_beds_list_titles"
@@ -15,7 +15,7 @@
 
         <uk.thinkling.shove.ListPreference
                 android:key="pref_bedscore"
-                android:title="Score to fill bed"
+                android:title="Score to fill bed (usually 3)"
                 android:defaultValue="3"
                 android:summary="%s"
                 android:entries="@array/pref_beds_list_titles"
@@ -25,7 +25,7 @@
 
         <uk.thinkling.shove.ListPreference
                 android:key="pref_maxcoins"
-                android:title="Number of Coins"
+                android:title="Number of Coins (usually 5)"
                 android:defaultValue="5"
                 android:summary="%s"
                 android:entries="@array/pref_beds_list_titles"
@@ -44,17 +44,20 @@
 
         <CheckBoxPreference
                 android:key="pref_progressive"
-                android:title="Progressive (or Follow-on, Oxford, Newmarket)"
+                android:title="Progressive ('Follow-on' / 'Oxford' / 'Newmarket')"
                 android:summary="Re-play any scoring coins"
                 android:enabled="true"
                 android:defaultValue="false" />
 
-        <CheckBoxPreference
-                android:key="pref_pointscore"
-                android:title="Shanghai / Portsmouth (Scoring)"
-                android:summary="Scoring version - no limit to beds"
-                android:enabled="false"
-                android:defaultValue="false" />
+        <uk.thinkling.shove.ListPreference
+            android:key="pref_scoremode"
+            android:title="Traditional or Bed Score ('Shanghai' / 'Portsmouth')"
+            android:defaultValue="0"
+            android:summary="%s"
+            android:entries="@array/pref_scoremode_titles"
+            android:entryValues="@array/pref_scoremode_values"
+            android:negativeButtonText="@null"
+            android:positiveButtonText="@null" />
 
         <CheckBoxPreference
                 android:key="pref_combat"

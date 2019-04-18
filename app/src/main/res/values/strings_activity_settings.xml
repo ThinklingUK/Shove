@@ -63,6 +63,20 @@
         <item>100</item>
     </string-array>
 
+    <string-array name="pref_scoremode_titles">
+        <item>Traditional (fill the beds)</item>
+        <item>Bed Score (first to 20)</item>
+        <item>Bed Score (first to 50)</item>
+        <item>Bed Score (first to 101)</item>
+    </string-array>
+
+    <string-array name="pref_scoremode_values">
+        <item>0</item>
+        <item>20</item>
+        <item>50</item>
+        <item>101</item>
+    </string-array>
+
     <!-- Example settings for Data & Sync -->
     <string name="pref_header_data_sync">Data &amp; sync</string>
 

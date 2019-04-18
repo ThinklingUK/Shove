@@ -95,7 +95,10 @@ public class MainActivity extends Activity {
 
             try {
                 myDrawView.loadPrefs();
-                InstructionText.setText(myDrawView.dynamicInstructions);
+                //InstructionText.setText(myDrawView.dynamicInstructions);
+                InstructionText.setText(Html.fromHtml(myDrawView.dynamicInstructions));
+
+
                 //Toast.makeText(getBaseContext(), "onResume - OK", Toast.LENGTH_SHORT).show();
             } catch (Exception ex) {
                 //Toast.makeText(getBaseContext(), "onResume - Fail", Toast.LENGTH_SHORT).show();

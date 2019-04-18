@@ -10,80 +10,121 @@
         android:id="@+id/drawView"/>
 
     <TextView
+        android:id="@+id/HighScoreText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/HighScoreText"
-        android:textSize="@dimen/abc_text_size_title_material"
         android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true" android:textColor="#c0c0c0" android:textAlignment="center"
-        android:fontFamily="sans-serif" android:text="This is  example Text" android:textIsSelectable="false"
-        android:layout_alignBottom="@+id/pauseButton" android:gravity="center"/>
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:fontFamily="sans-serif"
+        android:gravity="center"
+        android:text="This is  example Text"
+        android:textAlignment="center"
+        android:textColor="#c0c0c0"
+        android:textIsSelectable="false"
+        android:textSize="@dimen/abc_text_size_title_material" />
+
 
     <ImageButton
+        android:id="@+id/pauseButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="false"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="10dp"
+        android:background="#33FFFFFF"
+        android:clickable="true"
+        android:onClick="onPressButton"
+        android:src="@android:drawable/ic_media_pause" />
+
+    <RelativeLayout
+        android:id="@+id/overlay"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_alignParentLeft="false"
+        android:layout_alignParentTop="false"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:background="#33FFFFFF"
+        android:clickable="true"
+        android:visibility="visible">
+
+        <ImageButton
+            android:id="@+id/playButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/pauseButton" android:layout_alignParentTop="true" android:layout_alignParentRight="true"
+            android:layout_alignParentLeft="false"
+            android:layout_alignParentTop="false"
             android:layout_alignParentEnd="true"
-            android:src="@android:drawable/ic_media_pause"
-            android:onClick="onPressButton" android:clickable="true" android:background="#33FFFFFF"
-            android:layout_margin="10dp"/>
-
-
-    <RelativeLayout android:id="@+id/overlay"
-                  android:layout_width="fill_parent"
-                  android:layout_height="fill_parent"
-                  android:background="#33FFFFFF"
-                  android:clickable="true"
-                  android:visibility="visible">
-        <ImageButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/playButton" android:layout_alignParentTop="true" android:layout_alignParentRight="true"
-                android:layout_alignParentEnd="true"
-                android:src="@android:drawable/ic_media_play"
-                android:onClick="onPressButton" android:clickable="true" android:background="#FFCCCCCC"
-                android:layout_margin="10dp"/>
+            android:layout_alignParentRight="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginStart="10dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginBottom="10dp"
+            android:background="#FFCCCCCC"
+            android:clickable="true"
+            android:onClick="onPressButton"
+            android:src="@android:drawable/ic_media_play" />
 
         <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center"
-                android:layout_centerVertical="true" android:layout_centerHorizontal="true" android:padding="50dp"
-                android:background="@color/background_material_light">
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:background="@color/background_material_light"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="50dp">
 
 
             <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Shove Ha&apos;penny"
-                    android:id="@+id/textView" android:paddingBottom="@dimen/abc_dialog_list_padding_vertical_material"
-                    android:textSize="@dimen/abc_text_size_headline_material"/>
-            <Button
-                        android:layout_width="fill_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Instructions"
-                        android:id="@+id/button_instructions" android:layout_gravity="center_horizontal"
-                        android:onClick="onPressButton"/>
+                android:id="@+id/textView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingBottom="@dimen/abc_dialog_list_padding_vertical_material"
+                android:text="Shove Ha&apos;penny"
+                android:textSize="@dimen/abc_text_size_headline_material" />
 
             <Button
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Settings"
-                    android:id="@+id/button_settings" android:layout_gravity="center_horizontal"
-                    android:onClick="onPressButton"/>
+                android:id="@+id/button_instructions"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:onClick="onPressButton"
+                android:text="Instructions" />
 
             <Button
-                        android:layout_width="fill_parent"
-                        android:layout_height="wrap_content"
-                        android:text="New Game"
-                        android:id="@+id/button_newgame" android:layout_gravity="center_horizontal"
-                        android:onClick="onPressButton"/>
+                android:id="@+id/button_settings"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:onClick="onPressButton"
+                android:text="Settings" />
 
-                <Button
-                        android:layout_width="fill_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Resume Game"
-                        android:id="@+id/button_resume" android:layout_gravity="center_horizontal"
-                        android:onClick="onPressButton"/>
+            <Button
+                android:id="@+id/button_newgame"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:onClick="onPressButton"
+                android:text="New Game" />
+
+            <Button
+                android:id="@+id/button_resume"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:onClick="onPressButton"
+                android:text="Resume Game" />
 
         </LinearLayout>
     </RelativeLayout>
@@ -133,6 +174,7 @@
                 </ScrollView>
 
         </LinearLayout>
-        </RelativeLayout>
+
+    </RelativeLayout>
 
 </RelativeLayout>
