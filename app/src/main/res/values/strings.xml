@@ -3,26 +3,28 @@
     <string name="action_settings">Settings</string>
 
     <string name="msg_instructions">"<![CDATA[
-        <p>The winner is the first to fill all the beds.</p>
+        <p>The winner is the first to {6, choice, 0# fill all the beds | 1# reach a score of {6,number, integer}}.</p>
+        <p>Once they have a total score of <b>{2, number, integer} for a bed</b>, that bed is considered filled.</p>
+        <p>If the bed has already been filled, that bed''s scores will go to the opponent (unless doing so fills their final bed).</p>
         <p>There are <b>{0, number, integer} beds</b> marked out across the board and a vertical line on each side.</p>
         <p>Each player has a turn sliding their <b>{1, number, integer} coins</b> up the board with the aim of coins ending in a bed to score.</p>
         <p>A coin that does not reach the first bed may be replayed.</p>
         <p>At the end of a player''s turn, any valid scores are added to that player''s score for the bed.</p>
-        <p>Once they have a total score of <b>{2, number, integer} for a bed</b>, that bed is considered filled.</p>
-        <p>If the bed has already been filled, that bed''s scores will go to the opponent (unless doing so would cause a win).</p>
         <p>The follow-on rule <b>{5, choice, 0# is not active | 1# is active}</b>, so coins that score may <b>{5,choice,0#not be replayed|1#be replayed}</b>.</p>
         <p>Coins that strike the sides will <b>{3, choice, 0# fall off the sides | 1# bounce off the sides}</b>.</p>
         <p>Coins crossing the side rails will <b>{4, choice, 0# still be valid | 1# not be valid}</b> for scoring.</p>
         ]]>"
     </string>
+    <string name="msg_objective">"{0, choice, 0# land {1, number, integer} coins in each bed | 1# reach a score of {0,number, integer}}"</string>
     <string name="File_Name_Players">Scores</string>
     <string name="File_Name_Objects">moveObjs</string>
     <string name="exit_prompt">Exit ?</string>
     <string name="exit_message">Click yes to exit!</string>
     <string name="BtnText_Positive">Yes</string>
     <string name="BtnText_Negative">No</string>
-    <string name="win_message">%s wins the game</string>
-    <string name="newgame_message">Well done %s! Starting the next game.</string>
+    <string name="win_message">%s won this game</string>
+    <string name="newgame_message">Start next game</string>
+    <string name="game_over">Game Over</string>
 
     <plurals name="player_coins">
         <item quantity="one">%s - Last coin</item>
